@@ -1,0 +1,3 @@
+export function ConfirmDialog({title,body,confirm,onConfirm,onClose}:{title:string;body:string;confirm:string;onConfirm:()=>void;onClose:()=>void}){
+  return <div className="modal-backdrop" role="presentation" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><section className="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title"><span className="confirm-icon">!</span><h2 id="confirm-title">{title}</h2><p>{body}</p><div className="form-actions"><button className="button secondary" onClick={onClose}>Cancel</button><button className="button danger" onClick={onConfirm}>{confirm}</button></div></section></div>
+}
