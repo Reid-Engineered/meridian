@@ -11,7 +11,11 @@ export function CoverImage({reference,alt='',eager=false}:{reference:string;alt?
   const src=cached||(resolved?.reference===reference&&resolved.version===version?resolved.src:undefined);
   useEffect(()=>{
     let active=true;
-    if(src)return;
+    if(src){
+      coverReadiness.touch(reference);
+      if(resolved?.reference!==reference||resolved.version!==version)setResolved({reference,src,version});
+      return;
+    }
     const load=()=>{void coverReadiness.load(reference).then(
       value=>{if(active)setResolved({reference,src:value,version})},
       ()=>{if(active)setFailed({reference,version})}

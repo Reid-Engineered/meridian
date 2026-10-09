@@ -6,16 +6,19 @@ export class CoverReadiness {
   private active = 0;
   private listeners = new Set<() => void>();
   private generation = 0;
-  constructor(private resolve: (reference: string) => Promise<string>) {}
+  constructor(private resolve: (reference: string) => Promise<string>, private forgetResolution: (reference: string) => void = () => {}) {}
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   version = () => this.generation;
   peek(reference: string) {
+    return this.ready.get(reference)?.src;
+  }
+  touch(reference: string) {
     const entry = this.ready.get(reference);
     if (entry) { this.ready.delete(reference); this.ready.set(reference, entry); }
     return entry?.src;
   }
   load(reference: string, visible = true): Promise<string> {
-    const cached = this.peek(reference);
+    const cached = this.touch(reference);
     if (cached) return Promise.resolve(cached);
     const existing = this.pending.get(reference);
     if (existing) {
@@ -30,26 +33,7 @@ export class CoverReadiness {
         cancel: () => reject(new Error('Cover preload invalidated')),
         run: () => {
           this.active++;
-          this.resolve(reference).then(async src => {
-            const image = new Image();
-            // Retain the decoded image while it is in the bounded ready cache.
-            let timer: ReturnType<typeof setTimeout> | undefined;
-            try {
-              const decoded = typeof image.decode === 'function'
-                ? (image.src = src, image.decode())
-                : new Promise<void>((loaded, failed) => {
-                  image.onload = () => loaded(); image.onerror = () => failed(new Error('Cover unavailable')); image.src = src;
-                });
-              await Promise.race([decoded, new Promise<never>((_, failed) => {
-                timer = setTimeout(() => failed(new Error('Cover load timed out')), 15000);
-              })]);
-            } catch (error) { image.src = ''; throw error; }
-            finally { clearTimeout(timer); image.onload = null; image.onerror = null; }
-            if (generation !== this.generation) throw new Error('Cover preload invalidated');
-            this.ready.set(reference, { src, image });
-            if (this.ready.size > 64) this.ready.delete(this.ready.keys().next().value!);
-            return src;
-          }).then(resolve, reject).finally(() => { this.active--; this.pump(); });
+          this.readAndDecode(reference, generation).then(resolve, reject).finally(() => { this.active--; this.pump(); });
         },
       });
     });
@@ -58,6 +42,36 @@ export class CoverReadiness {
     promise.then(forget, forget);
     this.pump();
     return promise;
+  }
+  private async readAndDecode(reference: string, generation: number) {
+    let current = true;
+    let image: HTMLImageElement | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const work = Promise.resolve().then(() => this.resolve(reference)).then(async src => {
+      if (!current || generation !== this.generation) throw new Error('Cover preload invalidated');
+      image = new Image();
+      if (typeof image.decode === 'function') { image.src = src; await image.decode(); }
+      else await new Promise<void>((loaded, failed) => {
+        image!.onload = () => loaded(); image!.onerror = () => failed(new Error('Cover unavailable')); image!.src = src;
+      });
+      return src;
+    });
+    try {
+      const src = await Promise.race([work, new Promise<never>((_, failed) => {
+        timer = setTimeout(() => {
+          current = false;
+          // A timed-out native read must not poison later retries with its cached promise.
+          if (!image && generation === this.generation) this.forgetResolution(reference);
+          failed(new Error('Cover load timed out'));
+        }, 15000);
+      })]);
+      if (!current || generation !== this.generation) throw new Error('Cover preload invalidated');
+      // Retain the decoded image while it is in the bounded ready cache.
+      this.ready.set(reference, { src, image: image! });
+      if (this.ready.size > 64) this.ready.delete(this.ready.keys().next().value!);
+      return src;
+    } catch (error) { if (image) image.src = ''; throw error; }
+    finally { current = false; clearTimeout(timer); if (image) { image.onload = null; image.onerror = null; } }
   }
   private pump() {
     while (this.active < 4 && this.jobs.size) {

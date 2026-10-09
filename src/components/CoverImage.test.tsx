@@ -17,6 +17,17 @@ it('renders a preloaded cover on the first render after every tab remount',async
   expect(screen.queryByLabelText('Loading cover')).toBeNull();expect(screen.getByRole('img',{name:'Cover'}).getAttribute('loading')).toBe('eager');
   expect(libraryService.resolveCover).toHaveBeenCalledTimes(1);
 });
+it('keeps a mounted cache-hit image after eviction and a parent re-render',async()=>{
+  await coverReadiness.load('first');
+  const view=render(<CoverImage reference="first" alt="Cover" eager/>);
+  for(let i=0;i<64;i++)await coverReadiness.load(`other-${i}`);
+  expect(coverReadiness.peek('first')).toBeUndefined();
+  const calls=vi.mocked(libraryService.resolveCover).mock.calls.length;
+  view.rerender(<CoverImage reference="first" alt="Cover" eager/>);
+  expect(screen.queryByLabelText('Loading cover')).toBeNull();
+  expect(screen.getByRole('img',{name:'Cover'}).getAttribute('src')).toContain('first');
+  expect(libraryService.resolveCover).toHaveBeenCalledTimes(calls);
+});
 it('defers cold offscreen images, then starts when they approach the viewport',async()=>{
   let intersect!:(entries:{isIntersecting:boolean}[])=>void;
   const disconnect=vi.fn();

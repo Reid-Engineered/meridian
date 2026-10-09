@@ -30,7 +30,7 @@ it('evicts least recently used decoded images and retries failed decodes',async(
   const resolve=vi.fn(async r=>r),cache=new CoverReadiness(resolve);
   await cache.load('keep');
   for(let i=0;i<63;i++)await cache.load(String(i));
-  cache.peek('keep');await cache.load('new');
+  cache.touch('keep');await cache.load('new');
   expect(cache.peek('keep')).toBe('keep');expect(cache.peek('0')).toBeUndefined();
   vi.mocked(HTMLImageElement.prototype.decode).mockRejectedValueOnce(new Error('broken'));
   await expect(cache.load('bad')).rejects.toThrow('broken');expect(cache.peek('bad')).toBeUndefined();
@@ -53,5 +53,43 @@ it('releases stalled decode slots after timeout and permits retry',async()=>{
     const rejected=expect(pending).rejects.toThrow('timed out');
     await vi.advanceTimersByTimeAsync(15000);await rejected;
     await cache.load('stalled');expect(cache.peek('stalled')).toBe('stalled');
+  } finally {vi.useRealTimers();}
+});
+it('does not change eviction order during render lookups',async()=>{
+  const cache=new CoverReadiness(async r=>r);
+  await cache.load('first');for(let i=0;i<63;i++)await cache.load(String(i));
+  expect(cache.peek('first')).toBe('first');await cache.load('next');
+  expect(cache.peek('first')).toBeUndefined();
+});
+it('releases hung resolution slots and ignores their late completions',async()=>{
+  vi.useFakeTimers();
+  try {
+    const releases:((src:string)=>void)[]=[],forget=vi.fn();
+    const resolve=vi.fn().mockImplementationOnce(()=>new Promise<string>(done=>releases.push(done)))
+      .mockImplementationOnce(()=>new Promise<string>(done=>releases.push(done)))
+      .mockImplementationOnce(()=>new Promise<string>(done=>releases.push(done)))
+      .mockImplementationOnce(()=>new Promise<string>(done=>releases.push(done)))
+      .mockImplementation(async r=>`new:${r}`);
+    const cache=new CoverReadiness(resolve,forget);
+    const stalled=Array.from({length:4},(_,i)=>cache.load(`hung-${i}`).catch(error=>error.message));
+    const queued=cache.load('queued');await vi.advanceTimersByTimeAsync(0);
+    expect(resolve).toHaveBeenCalledTimes(4);
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(await Promise.all(stalled)).toEqual(Array(4).fill('Cover load timed out'));
+    expect(await queued).toBe('new:queued');expect(forget).toHaveBeenCalledTimes(4);
+    await cache.load('hung-0');for(const release of releases)release('old');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(cache.peek('hung-0')).toBe('new:hung-0');expect(cache.peek('hung-1')).toBeUndefined();
+    expect(HTMLImageElement.prototype.decode).toHaveBeenCalledTimes(2);
+  } finally {vi.useRealTimers();}
+});
+it('uses one deadline across reference resolution and image decode',async()=>{
+  vi.useFakeTimers();
+  try {
+    const cache=new CoverReadiness(()=>new Promise<string>(done=>setTimeout(()=>done('src'),8000)));
+    vi.mocked(HTMLImageElement.prototype.decode).mockImplementation(()=>new Promise<void>(done=>setTimeout(done,8000)));
+    const pending=cache.load('slow'),rejected=expect(pending).rejects.toThrow('timed out');
+    await vi.advanceTimersByTimeAsync(15000);await rejected;
+    await vi.advanceTimersByTimeAsync(1000);expect(cache.peek('slow')).toBeUndefined();
   } finally {vi.useRealTimers();}
 });

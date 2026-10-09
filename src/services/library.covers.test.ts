@@ -33,3 +33,14 @@ it('an old read failure cannot delete a new read cached after invalidation',asyn
   libraryService.resetDemo();await libraryService.resolveCover(reference);fail(new Error('old'));await rejected;
   expect(await libraryService.resolveCover(reference)).toBe('data:new');expect(invoke).toHaveBeenCalledTimes(2);
 });
+it('retries native resolution after its deadline and ignores a late old read',async()=>{
+  vi.useFakeTimers();
+  try {
+    let release!:(src:string)=>void;
+    vi.mocked(invoke).mockImplementationOnce(()=>new Promise<string>(done=>{release=done})).mockResolvedValue('data:new');
+    const pending=coverReadiness.load(reference),rejected=expect(pending).rejects.toThrow('timed out');
+    await vi.advanceTimersByTimeAsync(15000);await rejected;
+    await coverReadiness.load(reference);release('data:old');await vi.advanceTimersByTimeAsync(0);
+    expect(coverReadiness.peek(reference)).toBe('data:new');expect(invoke).toHaveBeenCalledTimes(2);
+  } finally {vi.useRealTimers();}
+});

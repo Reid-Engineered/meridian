@@ -7,7 +7,7 @@ import { CoverReadiness } from "./coverReadiness";
 
 const inTauri = () => "__TAURI_INTERNALS__" in window;
 const coverCache = new Map<string, Promise<string>>();
-export const coverReadiness = new CoverReadiness(reference => libraryService.resolveCover(reference));
+export const coverReadiness = new CoverReadiness(reference => libraryService.resolveCover(reference), reference => { coverCache.delete(reference); });
 const KEY = "meridian-demo-library-v1";
 const COLLECTION_KEY = "meridian-demo-collections-v1";
 

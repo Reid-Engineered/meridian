@@ -2,8 +2,6 @@
 
 The official open-book M logo, theme variants and icon regeneration instructions are documented in [the brand guide](docs/BRAND.md).
 
-Covers are preloaded for nearby shelves and likely next tabs, with decoded images reused across navigation. Loading limits, regression evidence and remaining desktop acceptance checks are in [cover navigation performance](docs/COVER-NAVIGATION.md).
-
 A clean way to keep track of your literature.
 
 Meridian is a private, local-first desktop application for cataloguing a personal book library. It uses Tauri 2, React, TypeScript, Rust, and SQLite. The warm, book-forward interface is based on the supplied LibMAN design references in `reference-ui/screens`.
@@ -19,6 +17,8 @@ Meridian is a private, local-first desktop application for cataloguing a persona
 - `src-tauri/migrations/` contains versioned SQLite schema changes.
 
 The browser development preview uses local storage and sample data. The Tauri application uses SQLite in the platform application-data directory. Debug builds seed ten sample titles only when the database is empty; release builds begin with an empty library.
+
+Covers are preloaded for nearby shelves and likely next tabs, with decoded images reused across navigation. Loading limits, regression evidence and remaining desktop acceptance checks are in [cover navigation performance](docs/COVER-NAVIGATION.md).
 
 ## Database model
 
