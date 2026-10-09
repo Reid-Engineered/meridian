@@ -18,13 +18,18 @@ function localCollections(): Collection[] {
   const saved = localStorage.getItem(COLLECTION_KEY);
   return saved ? JSON.parse(saved) : demoCollections;
 }
+/** Mirrors the native ORDER BY: `<field>_<asc|desc>`; missing years, ratings and authors sort last; ties by title. */
 function sortBooks(books: BookDetail[], sort = "date_added_desc") {
-  const copy = [...books];
-  const field = sort.replace(/_(asc|desc)$/, ""); const dir = sort.endsWith("desc") ? -1 : 1;
-  return copy.sort((a,b) => {
-    const av = field === "author" ? a.authors[0] : field === "publication_year" ? a.publicationYear ?? 0 : field === "rating" ? a.rating ?? 0 : field === "date_added" ? a.dateAdded : a.title;
-    const bv = field === "author" ? b.authors[0] : field === "publication_year" ? b.publicationYear ?? 0 : field === "rating" ? b.rating ?? 0 : field === "date_added" ? b.dateAdded : b.title;
-    return String(av).localeCompare(String(bv), undefined, { numeric: true }) * dir;
+  const m = /^(title|author|publication_year|rating|date_added)_(asc|desc)$/.exec(sort) ?? [, "date_added", "desc"];
+  const field = m[1], dir = m[2] === "desc" ? -1 : 1;
+  const key = (b: BookDetail): string | number | null => field === "author" ? b.authors[0] ?? null : field === "publication_year" ? b.publicationYear ?? null
+    : field === "rating" ? b.rating ?? null : field === "date_added" ? b.dateAdded : b.title;
+  const text = (v: string | number) => String(v).toLocaleLowerCase();
+  return [...books].sort((a, b) => {
+    const av = key(a), bv = key(b);
+    if (av === null || bv === null) return av === bv ? a.title.localeCompare(b.title) : av === null ? 1 : -1;
+    const primary = typeof av === "number" && typeof bv === "number" ? av - bv : text(av).localeCompare(text(bv), undefined, { numeric: true });
+    return primary !== 0 ? primary * dir : field === "date_added" ? (a.id - b.id) * dir : a.title.localeCompare(b.title);
   });
 }
 
