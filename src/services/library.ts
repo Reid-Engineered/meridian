@@ -1,10 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
-import { save } from "@tauri-apps/plugin-dialog";
-import type { BackupSummary, RestoreResult } from "../types";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import type { BackupSummary, RestoreResult, ImportedCover, CoverStorage, BackupFileSelection } from "../types";
 import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, MetadataResult, Statistics } from "../types";
 import { demoBooks, demoCollections } from "./demo";
 
 const inTauri = () => "__TAURI_INTERNALS__" in window;
+const coverCache = new Map<string, Promise<string>>();
 const KEY = "meridian-demo-library-v1";
 const COLLECTION_KEY = "meridian-demo-collections-v1";
 
@@ -73,9 +74,32 @@ export const libraryService = {
   async exportLibrary():Promise<string>{ return inTauri()?invoke("export_library"):JSON.stringify({version:1,books:localBooks(),collections:localCollections()},null,2); },
   async saveBackup():Promise<boolean>{
     if(!inTauri()) throw new Error("Database backup is available in the desktop app.");
-    const path=await save({defaultPath:`meridian-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`,filters:[{name:"Meridian backup",extensions:["json"]}]});
+    const path=await save({defaultPath:`meridian-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.meridian.zip`,filters:[{name:"Portable Meridian backup",extensions:["zip"]}]});
     if(!path)return false;
-    await invoke("save_backup",{path});return true;
+    await invoke("save_portable_backup",{path});return true;
+  },
+  async chooseCover():Promise<ImportedCover|null>{
+    if(!inTauri())throw new Error("Cover import is available in the desktop app.");
+    const path=await open({multiple:false,directory:false,filters:[{name:"Cover image",extensions:["png","jpg","jpeg","webp"]}]});
+    if(!path||Array.isArray(path))return null;
+    return invoke("import_cover",{path});
+  },
+  async resolveCover(reference:string):Promise<string>{
+    if(!reference.startsWith('meridian-cover:'))return reference;
+    let cached=coverCache.get(reference);
+    if(!cached){cached=invoke<string>('read_cover',{reference}).catch(error=>{coverCache.delete(reference);throw error});coverCache.set(reference,cached);if(coverCache.size>128)coverCache.delete(coverCache.keys().next().value!);}
+    return cached;
+  },
+  async getCoverStorage():Promise<CoverStorage>{return inTauri()?invoke('get_cover_storage'):{files:0,bytes:0};},
+  async chooseBackup():Promise<BackupFileSelection|null>{
+    if(!inTauri())throw new Error("Restore is available in the desktop app.");
+    const path=await open({multiple:false,directory:false,filters:[{name:"Meridian backup",extensions:["zip","json"]}]});
+    if(!path||Array.isArray(path))return null;
+    const inspection=await invoke<Omit<BackupFileSelection,'path'|'name'>>('inspect_backup_file',{path});
+    return {...inspection,path,name:path.split(/[\\/]/).pop()||path};
+  },
+  async restoreBackupFile(selection:BackupFileSelection):Promise<RestoreResult>{
+    const result=await invoke<RestoreResult>('restore_backup_file',{path:selection.path,digest:selection.digest});coverCache.clear();return result;
   },
   async inspectBackup(json:string):Promise<BackupSummary>{
     if(!inTauri()) throw new Error("Database restore is available in the desktop app.");

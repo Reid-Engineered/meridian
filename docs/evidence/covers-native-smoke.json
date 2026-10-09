@@ -1,0 +1,72 @@
+{
+  "checkedOn": "2026-10-08",
+  "passed": true,
+  "uninstallPassed": true,
+  "stages": [
+    {
+      "stage": "initial",
+      "passed": true,
+      "checks": [
+        "release first launch has an empty catalog",
+        "release has no seeded collections",
+        "native cover import resizes and uses portable reference",
+        "native cover import shares identical processed images",
+        "native creation preserves ordered authors and relations",
+        "native update preserves metadata",
+        "invalid native update rejects and rolls back",
+        "native search finds author",
+        "native collection rename",
+        "native export preserves current catalog"
+      ]
+    },
+    {
+      "stage": "reopen",
+      "passed": true,
+      "checks": [
+        "native process restart preserves all book fields",
+        "native process restart preserves both collection memberships",
+        "native statistics reflect persisted state",
+        "managed cover survives source deletion and native process restart",
+        "native WebView decodes the persisted managed cover"
+      ]
+    },
+    {
+      "stage": "scaled",
+      "passed": true,
+      "checks": [
+        "native process restart preserves all book fields",
+        "native process restart preserves both collection memberships",
+        "native statistics reflect persisted state",
+        "managed cover survives source deletion and native process restart",
+        "native WebView decodes the persisted managed cover",
+        "200 percent native WebView zoom renders the application",
+        "200 percent native WebView zoom activates compact navigation",
+        "200 percent native WebView zoom has no document horizontal overflow",
+        "200 percent native WebView zoom keeps Add book visible"
+      ]
+    },
+    {
+      "stage": "cleanup",
+      "passed": true,
+      "checks": [
+        "native process restart preserves all book fields",
+        "native process restart preserves both collection memberships",
+        "native statistics reflect persisted state",
+        "managed cover survives source deletion and native process restart",
+        "native WebView decodes the persisted managed cover",
+        "native portable archive contains managed covers",
+        "native backup validates full database snapshot",
+        "native backup save completes",
+        "native invalid restore leaves library unchanged",
+        "deleting a collection keeps the owned copy and remaining membership",
+        "native delete removes the owned copy",
+        "native collection cleanup",
+        "native restore reports counts and automatic recovery file",
+        "native restore returns the exact book graph",
+        "native restore preserves all database records",
+        "native portable restore creates a complete recovery ZIP",
+        "native portable restore preserves catalog and cover rendering"
+      ]
+    }
+  ]
+}

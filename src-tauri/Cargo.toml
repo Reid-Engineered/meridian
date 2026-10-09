@@ -26,5 +26,11 @@ chrono = { version = "0.4", features = ["serde"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 uuid = { version = "1", features = ["v4"] }
 
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+sha2 = "0.10"
+base64 = "0.22"
+zip = { version = "8", default-features = false, features = ["deflate"] }
+tempfile = "3"
+
 [dev-dependencies]
 tempfile = "3"

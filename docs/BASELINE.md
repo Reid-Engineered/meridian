@@ -85,3 +85,5 @@ Phase 0 exit criteria remain open until the missing native and visual evidence i
 October 8 backup follow-up: current suites pass 12 frontend and 17 Rust tests; installed smoke has 30 assertions. Normal MSI/NSIS are rebuilt through full verification. This follows the historical Phase 0 figures above; docs/BACKUP-RESTORE.md records the scope and remaining gaps.
 
 October 8 Windows launch fix: the release entry point now selects the Windows GUI subsystem. The desktop-build wrapper checks the built PE header for subsystem 2 (GUI) and fails if a console build slips through. This changes executable launch presentation and leaves the application-data path and library untouched.
+
+October 8 managed-cover follow-up: imported images and full-catalog portable ZIP archives are implemented, including complete pre-restore recovery archives. Current checks: 15 frontend / 26 Rust / 41 installed native assertions. docs/COVERS-PORTABLE-BACKUP.md supersedes historical cover limitations and records manual acceptance gaps.

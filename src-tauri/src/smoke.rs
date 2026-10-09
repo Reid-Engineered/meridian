@@ -25,6 +25,10 @@ pub fn configuration() -> AppResult<SmokeState> {
     }
     if stage == "initial" && directory.join("library.db").exists() { return Err(AppError::Storage); }
     if stage != "initial" && !directory.join("initial.json").exists() { return Err(AppError::Storage); }
+    if stage=="initial" {
+        image::RgbImage::from_fn(400,900,|x,y|image::Rgb([(x%251) as u8,(y%251) as u8,80]))
+            .save(directory.join("smoke-source.png")).map_err(|_|AppError::Storage)?;
+    }
     Ok(SmokeState {directory, stage, started: AtomicBool::new(false)})
 }
 
@@ -33,13 +37,14 @@ pub fn smoke_context(state: tauri::State<SmokeState>) -> AppResult<serde_json::V
     let expected = if state.stage != "initial" {
         Some(serde_json::from_slice::<serde_json::Value>(&std::fs::read(state.directory.join("initial.json"))?)?)
     } else { None };
-    Ok(serde_json::json!({"stage":state.stage, "expected":expected}))
+    Ok(serde_json::json!({"stage":state.stage, "expected":expected,"coverSource":state.directory.join("smoke-source.png").display().to_string()}))
 }
 
 #[tauri::command]
 pub fn smoke_finish(app: tauri::AppHandle, state: tauri::State<SmokeState>, report: serde_json::Value) -> AppResult<()> {
     let passed = report.get("passed").and_then(|v|v.as_bool()).unwrap_or(false);
     std::fs::write(state.directory.join(format!("{}.json", state.stage)), serde_json::to_vec_pretty(&report)?)?;
+    if state.stage=="initial" {std::fs::remove_file(state.directory.join("smoke-source.png"))?;}
     app.exit(if passed {0} else {1});
     Ok(())
 }

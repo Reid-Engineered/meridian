@@ -1,3 +1,5 @@
+#[path = "../../src/covers.rs"] pub mod covers;
+#[path = "../../src/portable.rs"] pub mod portable;
 #[path = "../../src/domain/mod.rs"] pub mod domain;
 #[path = "../../src/error.rs"] pub mod error;
 #[path = "../../src/repositories/mod.rs"] pub mod repositories;

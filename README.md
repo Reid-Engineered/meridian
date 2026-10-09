@@ -70,7 +70,7 @@ This builds a separately identified **Meridian Smoke Test** app, installs it int
 ## Current limitations
 
 - ISBN lookup uses Open Library and requires internet access; manual entry always remains available.
-- Desktop Settings saves version-2 database backups and validates/confirms transactional restore, with an automatic recovery copy. All catalog records and reading history are preserved; cover image files remain separate. Legacy version-1 catalog exports and browser-preview exports cannot be restored. See [backup/restore evidence and limits](docs/BACKUP-RESTORE.md).
-- Cover URLs and packaged sample covers display today; the backend directory is prepared for a future native file-copy command.
+- Desktop Settings saves portable ZIP backups containing the full catalog and all locally imported covers. Restore validates and confirms replacement, then creates a complete recovery ZIP first. Legacy version-1 exports and browser-preview exports cannot be restored. See [cover and portable backup evidence](docs/COVERS-PORTABLE-BACKUP.md).
+- Native cover selection, resize/compression, replacement and removal are supported for PNG/JPEG/WebP. Settings shows actual disk usage. Remote URLs remain links; import an image to preserve it offline.
 - Collection creation, renaming, deletion, and many-to-many book assignment are supported.
 - Reading records are modeled for history, while the interface currently edits the latest session.

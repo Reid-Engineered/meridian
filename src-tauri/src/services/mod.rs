@@ -24,7 +24,9 @@ impl LibraryService {
     tx.commit()?;Ok(json)
   }
   pub fn backup(&self)->AppResult<String>{let mut db=self.db()?;crate::backup::export(&mut db)}
-  pub fn restore(&self,json:&str,directory:&std::path::Path)->AppResult<crate::backup::RestoreResult>{let mut db=self.db()?;crate::backup::restore(&mut db,json,directory)}
+  pub fn restore(&self,json:&str,covers:&std::path::Path,directory:&std::path::Path)->AppResult<crate::backup::RestoreResult>{let mut db=self.db()?;crate::portable::restore_json(&mut db,covers,json,directory)}
+  pub fn save_portable(&self,covers:&std::path::Path,path:&std::path::Path)->AppResult<()> {let mut db=self.db()?;crate::portable::save(&mut db,covers,path)}
+  pub fn restore_portable(&self,covers:&std::path::Path,path:&std::path::Path,digest:&str,recovery:&std::path::Path)->AppResult<crate::backup::RestoreResult>{let mut db=self.db()?;crate::portable::restore(&mut db,covers,path,digest,recovery)}
 }
 
 pub fn seed_development(conn:&mut Connection)->AppResult<()> {

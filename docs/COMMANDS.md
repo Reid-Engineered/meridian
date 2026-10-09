@@ -43,3 +43,18 @@ Status: Want to Read, Unread, Reading, Finished, Did Not Finish. Format: Hardcov
 Catalog export shape: `{version: 1, books: BookDetail[], collections: Collection[]}`. It uses one service lock and read transaction, but contains current book details and latest reading state rather than all historical sessions/shared entities. Cover files are not embedded; this format is not accepted by restore.
 
 Database backup shape: `{format: "meridian-database", version: 2, schemaVersion: 1, tables: {[table]: {columns: string[], rows: (string | number | null)[][]}}}`. Fixed tables: works, authors, work_authors, editions, library_copies, reading_records, tags, copy_tags, collections, collection_copies, sqlite_sequence. Column order must match the schema; constraints, types, sequence counters, FK and integrity checks run before replacement. Limit: 64 MiB of UTF-8 JSON. Restoring replaces the entire catalog and retains its previous snapshot under app-data/backups. Cover references survive; image files are separate. See BACKUP-RESTORE.md for verification and filesystem limits.
+
+## Managed covers and portable archives
+
+Cover references use meridian-cover:<SHA-256>.jpg. Heavy import/archive operations run on native worker threads; LibraryService serializes database access. Existing JSON restore now validates locally available managed images and makes a complete recovery ZIP. Settings defaults to the portable file commands below.
+
+| Command | Payload | Result | Failure behavior |
+| --- | --- | --- | --- |
+| import_cover | {path} | {reference, bytes, width, height} | PNG/JPEG/WebP, 20 MiB/24MP limits, resized JPEG; invalid imports leave no file |
+| read_cover | {reference} | JPEG data URL string | Only validated managed references, dimensions and digest-matching files |
+| get_cover_storage | none | {files, bytes} | Physical managed file count/bytes; includes unused retained images |
+| save_portable_backup | {path} | null | Consistent catalog plus referenced managed JPEGs; synced, no overwrite |
+| inspect_backup_file | {path} | {digest, summary, coverFiles, coverBytes, externalCovers} | Staged ZIP or version-2 JSON without managed images; no live mutation |
+| restore_backup_file | {path, digest} | {summary, recoveryPath} | Review digest must match; complete recovery ZIP before replacement; catalog rollback on failure |
+
+Portable ZIP contains catalog.json and covers/<SHA-256>.jpg only. Limit: 2 GiB file/unpacked total, 100,001 entries, 64 MiB catalog, 512 KiB per managed JPEG. Remote/other cover references remain links; inspect reports their count. Old assets are never overwritten or removed. See COVERS-PORTABLE-BACKUP.md for the exact safety and qualification boundary.

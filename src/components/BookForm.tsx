@@ -4,6 +4,7 @@ import { BookOpen, Search, Upload, X } from "lucide-react";
 import type { BookDetail, BookFormat, BookInput, Collection, MetadataResult, ReadingStatus } from "../types";
 import { EMPTY_BOOK } from "../types";
 import { libraryService } from "../services/library";
+import { CoverImage } from "./CoverImage";
 
 const statuses:ReadingStatus[]=["Want to Read","Unread","Reading","Finished","Did Not Finish"];
 const formats:BookFormat[]=["Hardcover","Paperback","Mass Market Paperback","Ebook","Audiobook","Other"];
@@ -18,14 +19,16 @@ export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;col
   const [form,setForm]=useState<BookInput>(()=>asInput(book)); const [tab,setTab]=useState<"details"|"reading"|"copy">("details");
   const [authorText,setAuthorText]=useState(form.authors.join(", ")); const [tagText,setTagText]=useState(form.tags.join(", ")); const [error,setError]=useState(""); const [saving,setSaving]=useState(false); const [isbnBusy,setIsbnBusy]=useState(false);
   const modalRef = useModalFocus<HTMLDivElement>(onClose);
+  const [coverBusy,setCoverBusy]=useState(false);
+  const chooseCover=async()=>{setError('');setCoverBusy(true);try{const imported=await libraryService.chooseCover();if(imported)set('coverUrl',imported.reference)}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setCoverBusy(false)}};
   const titleRef = useRef<HTMLInputElement>(null);
   const id = useId();
   const tabs = ["details", "reading", "copy"] as const;
   const selectTab = (next: typeof tab) => { setTab(next); };
   const set=<K extends keyof BookInput>(key:K,value:BookInput[K])=>setForm(f=>({...f,[key]:value}));
-  const applyMeta=(m:MetadataResult)=>setForm(f=>({...f,title:m.title||f.title,subtitle:m.subtitle??f.subtitle,authors:m.authors.length?m.authors:f.authors,publisher:m.publisher??f.publisher,publicationYear:m.publicationYear??f.publicationYear,pageCount:m.pageCount??f.pageCount,coverUrl:m.coverUrl??f.coverUrl,isbn10:m.isbn10??f.isbn10,isbn13:m.isbn13??f.isbn13,description:m.description??f.description}));
+  const applyMeta=(m:MetadataResult)=>setForm(f=>({...f,title:m.title||f.title,subtitle:m.subtitle??f.subtitle,authors:m.authors.length?m.authors:f.authors,publisher:m.publisher??f.publisher,publicationYear:m.publicationYear??f.publicationYear,pageCount:m.pageCount??f.pageCount,coverUrl:f.coverUrl?.startsWith("meridian-cover:")?f.coverUrl:m.coverUrl??f.coverUrl,isbn10:m.isbn10??f.isbn10,isbn13:m.isbn13??f.isbn13,description:m.description??f.description}));
   const lookup=async()=>{const isbn=form.isbn13||form.isbn10;if(!isbn){setError("Enter an ISBN first.");return}setIsbnBusy(true);setError("");try{const m=await libraryService.lookupIsbn(isbn);applyMeta(m);setAuthorText(m.authors.join(", "));}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"Metadata lookup is unavailable. You can continue manually.");}finally{setIsbnBusy(false)}};
-  const submit=async(e:React.FormEvent)=>{e.preventDefault(); const authors=authorText.split(",").map(x=>x.trim()).filter(Boolean);const tags=tagText.split(",").map(x=>x.trim()).filter(Boolean);if(!form.title.trim()){setError("A title is required.");setTab("details");queueMicrotask(()=>titleRef.current?.focus());return}setSaving(true);setError("");try{await onSave({...form,title:form.title.trim(),authors,tags});}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"The book could not be saved.");setSaving(false)}};
+  const submit=async(e:React.FormEvent)=>{e.preventDefault(); if(coverBusy||saving)return; const authors=authorText.split(",").map(x=>x.trim()).filter(Boolean);const tags=tagText.split(",").map(x=>x.trim()).filter(Boolean);if(!form.title.trim()){setError("A title is required.");setTab("details");queueMicrotask(()=>titleRef.current?.focus());return}setSaving(true);setError("");try{await onSave({...form,title:form.title.trim(),authors,tags});}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"The book could not be saved.");setSaving(false)}};
   return <div ref={modalRef} className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} tabIndex={-1}><form className="book-form" onSubmit={submit} aria-label={book?"Edit book":"Add book"}>
     <header className="form-header"><div><span className="form-kicker">{book?"Library copy":"New addition"}</span><h2 id={`${id}-title`}>{book?"Edit book":"Add to your library"}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close"><X size={20}/></button></header>
     <div className="form-tabs" role="tablist" aria-label="Book fields">{tabs.map((t,index)=><button type="button" role="tab" id={`${id}-${t}`} aria-controls={`${id}-panel`} aria-selected={tab===t} tabIndex={tab===t?0:-1} className={tab===t?"active":""} onClick={()=>selectTab(t)} onKeyDown={e=>{
@@ -41,7 +44,7 @@ export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;col
       <label>Series<input value={form.series} onChange={e=>set("series",e.target.value)}/></label><label>Series number<input type="number" step="0.1" value={form.seriesPosition??""} onChange={e=>set("seriesPosition",e.target.value?+e.target.value:undefined)}/></label>
       <label>Pages<input type="number" value={form.pageCount??""} onChange={e=>set("pageCount",e.target.value?+e.target.value:undefined)}/></label><label>Language<input value={form.language} onChange={e=>set("language",e.target.value)}/></label>
       <label className="span-2">Description<textarea rows={4} value={form.description} onChange={e=>set("description",e.target.value)}/></label>
-      <label className="span-2">Cover image URL or local path<div className="input-with-icon"><Upload size={16}/><input value={form.coverUrl} onChange={e=>set("coverUrl",e.target.value)} placeholder="https://… or a local image path"/></div></label></div>
+      <section className="span-2 cover-editor" aria-label="Cover image"><strong>Cover image</strong><div className="cover-editor-content">{form.coverUrl&&<div className="cover-editor-preview"><CoverImage reference={form.coverUrl} alt={`Cover of ${form.title||'this book'}`}/></div>}<div><p>{form.coverUrl?.startsWith('meridian-cover:')?'Stored in your library. Included in portable backups.':'Choose PNG, JPEG or WebP, up to 20 MiB. Meridian stores a compact copy.'}</p><button type="button" className="button secondary" disabled={coverBusy||saving||!('__TAURI_INTERNALS__' in window)} onClick={chooseCover}><Upload size={16}/>{coverBusy?'Importing…':form.coverUrl?'Replace cover':'Choose cover'}</button>{form.coverUrl&&<button type="button" className="button danger-quiet" disabled={coverBusy||saving} onClick={()=>set('coverUrl','')}>Remove cover</button>}{!('__TAURI_INTERNALS__' in window)&&<small>Image import is available in the desktop app.</small>}</div></div>{!form.coverUrl?.startsWith('meridian-cover:')&&<label>Cover image URL<input value={form.coverUrl||''} onChange={e=>set('coverUrl',e.target.value)} placeholder="https://…"/></label>}</section></div>
     </>}
     {tab==="reading"&&<div className="field-grid"><label className="span-2">Reading status<select value={form.status} onChange={e=>set("status",e.target.value as ReadingStatus)}>{statuses.map(s=><option key={s}>{s}</option>)}</select></label>
       <label>Current page<input type="number" min="0" value={form.currentPage??""} onChange={e=>set("currentPage",e.target.value?+e.target.value:undefined)}/></label><label>Rating<select value={form.rating??""} onChange={e=>set("rating",e.target.value?+e.target.value:undefined)}><option value="">Not rated</option>{[1,2,3,4,5].map(n=><option key={n} value={n}>{"★".repeat(n)} ({n})</option>)}</select></label>
@@ -54,6 +57,6 @@ export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;col
       <label className="span-2">Private notes<textarea rows={5} value={form.notes} onChange={e=>set("notes",e.target.value)} placeholder="Edition details, memories, lending notes…"/></label></div>}
     </div>
     {error&&<p className="form-error" role="alert"><BookOpen size={16}/>{error}</p>}
-    <footer className="form-actions"><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" disabled={saving}>{saving?"Saving…":book?"Save changes":"Add book"}</button></footer>
+    <footer className="form-actions"><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" disabled={saving||coverBusy}>{saving?"Saving…":book?"Save changes":"Add book"}</button></footer>
   </form></div>;
 }

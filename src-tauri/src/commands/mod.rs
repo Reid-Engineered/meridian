@@ -18,8 +18,26 @@ use crate::{domain::{AppInfo,BookDetail,BookInput,BookQuery,Collection,MetadataR
 #[tauri::command] pub fn save_backup(state:State<AppState>,path:String)->AppResult<()> {
   crate::backup::save(&state.library.backup()?,std::path::Path::new(&path))
 }
+#[tauri::command] pub async fn import_cover(state:State<'_,AppState>,path:String)->AppResult<crate::covers::Imported> {
+  let directory=state.covers_path.clone();
+  tauri::async_runtime::spawn_blocking(move||crate::covers::import(std::path::Path::new(&path),&directory)).await.map_err(|_|crate::error::AppError::Storage)?
+}
+#[tauri::command] pub fn read_cover(state:State<AppState>,reference:String)->AppResult<String>{crate::covers::data_url(&state.covers_path,&reference)}
+#[tauri::command] pub fn get_cover_storage(state:State<AppState>)->AppResult<crate::covers::Storage>{crate::covers::storage(&state.covers_path)}
+#[tauri::command] pub async fn save_portable_backup(state:State<'_,AppState>,path:String)->AppResult<()> {
+  let library=state.library.clone();let covers=state.covers_path.clone();
+  tauri::async_runtime::spawn_blocking(move||library.save_portable(&covers,std::path::Path::new(&path))).await.map_err(|_|crate::error::AppError::Storage)?
+}
+#[tauri::command] pub async fn inspect_backup_file(path:String)->AppResult<crate::portable::Inspection> {
+  tauri::async_runtime::spawn_blocking(move||crate::portable::inspect(std::path::Path::new(&path))).await.map_err(|_|crate::error::AppError::Storage)?
+}
+#[tauri::command] pub async fn restore_backup_file(state:State<'_,AppState>,path:String,digest:String)->AppResult<crate::backup::RestoreResult> {
+  let library=state.library.clone();let covers=state.covers_path.clone();
+  let recovery=state.database_path.parent().ok_or(crate::error::AppError::Storage)?.join("backups");
+  tauri::async_runtime::spawn_blocking(move||library.restore_portable(&covers,std::path::Path::new(&path),&digest,&recovery)).await.map_err(|_|crate::error::AppError::Storage)?
+}
 #[tauri::command] pub fn inspect_backup(json:String)->AppResult<crate::backup::Summary>{crate::backup::inspect(&json)}
 #[tauri::command] pub fn restore_backup(state:State<AppState>,json:String)->AppResult<crate::backup::RestoreResult>{
   let parent=state.database_path.parent().ok_or(crate::error::AppError::Storage)?;
-  state.library.restore(&json,&parent.join("backups"))
+  state.library.restore(&json,&state.covers_path,&parent.join("backups"))
 }

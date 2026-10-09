@@ -1,3 +1,3 @@
 use std::path::PathBuf;
 use crate::services::LibraryService;
-pub struct AppState { pub library:LibraryService,pub database_path:PathBuf,pub covers_path:PathBuf }
+pub struct AppState { pub library:std::sync::Arc<LibraryService>,pub database_path:PathBuf,pub covers_path:PathBuf }

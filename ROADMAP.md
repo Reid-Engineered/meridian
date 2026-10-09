@@ -66,9 +66,9 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 
 ### Codex
 
-- [ ] Implement a native cover-file picker and copy selected images into the application-data cover directory.
-- [ ] Validate cover type and size, generate collision-safe filenames, and clean up failed imports.
-- [ ] Store portable cover references rather than machine-specific absolute paths where possible.
+- [x] Implement a native cover-file picker and store normalized images in the application-data cover directory.
+- [x] Validate cover type and size, generate content-based filenames, and clean up failed imports.
+- [x] Store portable cover references rather than machine-specific absolute paths.
 - [x] Implement transactional JSON database backup restoration with schema-version validation (version 2; legacy catalog exports are rejected).
 - [x] Create an automatic timestamped backup before every restore. Bulk import remains planned.
 - [ ] Implement CSV export and a staged CSV import service with duplicate detection.
@@ -76,7 +76,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 
 ### Agy
 
-- [ ] Add native cover selection, preview, replace, and remove controls to the book form.
+- [x] Add native cover selection, preview, replace, and remove controls to the book form.
 - [x] Build the backup restore confirmation and success/error states (automated interaction checks pass; manual picker and visual qualification remain open).
 - [ ] Build a CSV import flow: choose file → map columns → validate → review → import.
 - [ ] Show row-level validation errors without discarding the user's mapping or corrections.
@@ -94,7 +94,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 
 - [ ] A full export → delete test database → restore round trip preserves all catalog data.
 - [ ] Failed imports and restores are atomic.
-- [ ] Imported covers survive application restart and database backup/restore.
+- [x] Imported covers survive restart and portable backup/restore (isolated Rust and installed native checks).
 
 ---
 
@@ -266,3 +266,5 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] `README.md`, architecture notes, and this roadmap are updated when behavior changes.
 
 **October 8 backup increment:** version-2 full-catalog snapshots, isolated validation, transactional restore, automatic recovery files and desktop Settings controls are implemented. Six backup/storage tests, four restore-interaction tests and six installed native assertions pass; 12 frontend / 17 Rust / 30 native checks total. Covers remain separate, legacy catalog exports are not restorable, and abrupt-process/power-loss tests and manual dialog/accessibility acceptance remain open. See docs/BACKUP-RESTORE.md.
+
+**October 8 managed-cover increment:** native import/resize/JPEG compression/deduplication, image previews on every surface, actual storage totals and portable ZIP backup/restore with complete recovery archives are implemented. 15 frontend, 26 Rust and 41 installed native assertions pass; compact light/dark preview checks pass. See docs/COVERS-PORTABLE-BACKUP.md. Manual system-picker/upgrade/accessibility and interruption qualification remain open.

@@ -1,5 +1,7 @@
 # Database backup and restore — October 8, 2026
 
+**Historical database-only increment:** Settings now defaults to portable ZIP backups including managed images. Complete recovery ZIPs, cover imports and current evidence are documented in [COVERS-PORTABLE-BACKUP.md](COVERS-PORTABLE-BACKUP.md). The version-2 JSON catalog format below remains the archive catalog format and a compatibility API.
+
 Desktop Settings now offers **Save backup** and **Choose file**. Choose file validates the document before showing its book, collection and reading-record counts. Cancel leaves the library unchanged. Replace library saves the previous catalog under the application-data `backups/` directory, then replaces the catalog in one transaction. Success shows the recovery filename; choose that file to recover the prior library. Recovery files are retained without automatic pruning.
 
 Save backup uses a native save dialog, writes and synchronizes a temporary file beside the chosen destination, then publishes the complete file without overwriting an existing file. Choose a new name if a file already exists. Publication requires filesystem hard-link support (tested on NTFS); FAT/exFAT destinations are not qualified. Save locally and copy the completed JSON to another destination where necessary.

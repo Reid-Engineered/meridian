@@ -8,7 +8,7 @@ Protect the user's library: transactional writes, atomic migrations, safe saving
 
 Work in small, coherent increments. Completion requires appropriate behavior checks and current documentation. Verify resulting data, failures, round trips, and performance; a visible control is not proof.
 
-Read `docs/ARCHITECTURE.md`, `docs/BASELINE.md`, and `ROADMAP.md` before changing boundaries or priorities. Current priority is closing Phase 0 evidence gaps, then safe backup restoration in Phase 1.
+Read `docs/ARCHITECTURE.md`, `docs/BASELINE.md`, and `ROADMAP.md` before changing boundaries or priorities. Database recovery, managed cover imports and portable ZIP backups are implemented. Current priority is normal installed personal-use acceptance, including isolated upgrade, system-picker and accessibility checks; CSV and broader features remain planned.
 
 Run `npm run verify -- --quick` for frontend/core changes and full `npm run verify` for desktop packaging changes. Report environmental failures and manual checks honestly. Avoid unrelated formatting or changes to existing user work.
 

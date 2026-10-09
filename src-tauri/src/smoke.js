@@ -15,9 +15,13 @@
       check('release has no seeded collections', (await invoke('list_collections')).length === 0);
       const first = await invoke('create_collection', {name:'Smoke favorites',description:'Keepers'});
       const second = await invoke('create_collection', {name:'Smoke reading',description:'Two shelves'});
+      const cover=await invoke('import_cover',{path:context.coverSource});
+      check('native cover import resizes and uses portable reference',cover.width===267 && cover.height===600 && cover.reference.startsWith('meridian-cover:'));
+      const duplicate=await invoke('import_cover',{path:context.coverSource});
+      check('native cover import shares identical processed images',duplicate.reference===cover.reference && (await invoke('get_cover_storage')).files===1);
       const input = {title:'Native smoke — 星',authors:['Jane Doe','李白'],format:'Paperback',status:'Reading',
         currentPage:42,pageCount:300,rating:4,isbn13:'9781234567897',tags:['favorite','日本語'],
-        collectionIds:[first.id,second.id],notes:'Preserve this note',dateStarted:'2026-01-01'};
+        collectionIds:[first.id,second.id],notes:'Preserve this note',dateStarted:'2026-01-01',coverUrl:cover.reference};
       const created = await invoke('create_book', {input});
       check('native creation preserves ordered authors and relations', same(created.authors,input.authors) && created.collectionIds.length===2 && created.currentPage===42);
       book = await invoke('update_book', {id:created.id,input:{...input,title:'Revised native smoke — 星',notes:'Updated note'}});
@@ -37,6 +41,10 @@
       const collections=await invoke('list_collections');
       check('native process restart preserves both collection memberships',collections.length===2 && collections.every(c=>c.bookCount===1));
       check('native statistics reflect persisted state',(await invoke('get_statistics')).reading===1);
+      const source=await invoke('read_cover',{reference:book.coverUrl});
+      check('managed cover survives source deletion and native process restart',source.startsWith('data:image/jpeg;base64,') && (await invoke('get_cover_storage')).files===1);
+      const image=new Image();image.src=source;await image.decode();
+      check('native WebView decodes the persisted managed cover',image.naturalWidth===267 && image.naturalHeight===600);
       if(context.stage==='scaled') {
         for(let frame=0;frame<120 && !document.querySelector('.app-shell');frame++) await new Promise(requestAnimationFrame);
         await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame);
@@ -47,6 +55,10 @@
         check('200 percent native WebView zoom keeps Add book visible',!!add && getComputedStyle(add).display!=='none' && add.getBoundingClientRect().width>0);
       }
       if(context.stage==='cleanup') {
+        const path=info.databasePath.replace(/library\.db$/,'smoke-portable.meridian.zip');
+        await invoke('save_portable_backup',{path});
+        const portable=await invoke('inspect_backup_file',{path});
+        check('native portable archive contains managed covers',portable.coverFiles===1 && portable.coverBytes>0 && portable.summary.books===1);
         const backup=await invoke('create_backup');
         const summary=await invoke('inspect_backup',{json:backup});
         check('native backup validates full database snapshot',summary.books===1 && summary.collections===2 && summary.readingRecords===1);
@@ -65,6 +77,9 @@
         check('native restore reports counts and automatic recovery file',restored.summary.books===1 && restored.recoveryPath.includes('before-restore-'));
         check('native restore returns the exact book graph',same(await invoke('get_book',{id:book.id}),book));
         check('native restore preserves all database records',same(JSON.parse(await invoke('create_backup')),JSON.parse(backup)));
+        const restoredPortable=await invoke('restore_backup_file',{path,digest:portable.digest});
+        check('native portable restore creates a complete recovery ZIP',restoredPortable.recoveryPath.endsWith('.meridian.zip'));
+        check('native portable restore preserves catalog and cover rendering',same(await invoke('get_book',{id:book.id}),book) && (await invoke('read_cover',{reference:book.coverUrl}))===source);
         await invoke('delete_book',{id:book.id});
         for(const collection of await invoke('list_collections')) await invoke('delete_collection',{id:collection.id});
       }

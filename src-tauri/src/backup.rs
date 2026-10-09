@@ -11,7 +11,7 @@ pub const MAX_BYTES: usize = 64 * 1024 * 1024;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all="camelCase", deny_unknown_fields)]
-struct Backup { format: String, version: u32, schema_version: u32, tables: BTreeMap<String, Table> }
+pub(crate) struct Backup { format: String, version: u32, schema_version: u32, tables: BTreeMap<String, Table> }
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Table { columns: Vec<String>, rows: Vec<Vec<serde_json::Value>> }
@@ -60,7 +60,7 @@ pub fn export(db: &mut Connection) -> AppResult<String> {
     if json.len()>MAX_BYTES { return Err(invalid("Backup exceeds the supported 64 MiB limit.")); }
     Ok(json)
 }
-fn apply(db: &Connection, backup: &Backup) -> AppResult<()> {
+pub(crate) fn apply(db: &Connection, backup: &Backup) -> AppResult<()> {
     for &table in TABLES.iter().rev() { db.execute(&format!("DELETE FROM {table}"),[])?; }
     for &name in TABLES {
         let table = &backup.tables[name];
@@ -90,7 +90,7 @@ fn apply(db: &Connection, backup: &Backup) -> AppResult<()> {
     if integrity!="ok" { return Err(invalid("Backup failed database integrity checks.")); }
     Ok(())
 }
-fn validated(json: &str) -> AppResult<Backup> {
+pub(crate) fn validated(json: &str) -> AppResult<Backup> {
     if json.len()>MAX_BYTES { return Err(invalid("Backup exceeds the supported 64 MiB limit.")); }
     let backup:Backup=serde_json::from_str(json).map_err(|_|invalid("Choose a version-2 Meridian database backup. Legacy catalog exports and browser previews cannot be restored."))?;
     if backup.format!="meridian-database" || backup.version!=2 || backup.schema_version!=1 {
@@ -116,7 +116,16 @@ fn validated(json: &str) -> AppResult<Backup> {
     tx.commit()?;
     Ok(backup)
 }
-fn summary(backup:&Backup)->Summary { Summary {books:backup.tables["library_copies"].rows.len(),collections:backup.tables["collections"].rows.len(),reading_records:backup.tables["reading_records"].rows.len()} }
+pub(crate) fn summary(backup:&Backup)->Summary { Summary {books:backup.tables["library_copies"].rows.len(),collections:backup.tables["collections"].rows.len(),reading_records:backup.tables["reading_records"].rows.len()} }
+pub(crate) fn snapshot_json(db:&Connection)->AppResult<String> {
+    let json=serde_json::to_string_pretty(&snapshot(db)?)?;
+    if json.len()>MAX_BYTES {return Err(invalid("Catalog exceeds the supported 64 MiB limit."));}Ok(json)
+}
+pub(crate) fn cover_references(backup:&Backup)->Vec<String> {
+    let table=&backup.tables["editions"];
+    let index=table.columns.iter().position(|c|c=="cover_url").unwrap();
+    table.rows.iter().filter_map(|r|r[index].as_str().map(str::to_owned)).collect()
+}
 pub fn inspect(json:&str)->AppResult<Summary> { Ok(summary(&validated(json)?)) }
 pub fn save(json:&str,path:&Path)->AppResult<()> {
     // Hard-link publication refuses to overwrite an existing file and makes the

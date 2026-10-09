@@ -74,6 +74,9 @@ export interface Statistics {
 export interface AppInfo { databasePath: string; coversPath: string; version: string; }
 export interface BackupSummary { books: number; collections: number; readingRecords: number; }
 export interface RestoreResult { summary: BackupSummary; recoveryPath: string; }
+export interface ImportedCover { reference: string; bytes: number; width: number; height: number; }
+export interface CoverStorage { files: number; bytes: number; }
+export interface BackupFileSelection { path: string; name: string; digest: string; summary: BackupSummary; coverFiles: number; coverBytes: number; externalCovers: number; }
 export interface BookQuery { search?: string; status?: string; format?: string; minRating?: number; collectionId?: number; sort?: string; }
 export interface MetadataResult { title: string; subtitle?: string; authors: string[]; publisher?: string; publicationYear?: number; pageCount?: number; coverUrl?: string; isbn10?: string; isbn13?: string; description?: string; }
 

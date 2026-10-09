@@ -1,3 +1,4 @@
+import { CoverImage } from "./CoverImage";
 import { Headphones, MoreHorizontal } from "lucide-react";
 import type { BookDetail } from "../types";
 
@@ -11,7 +12,7 @@ export function BookCard({book,onOpen,view}:{book:BookDetail;onOpen:()=>void;vie
   const progress=book.pageCount&&book.currentPage?Math.round(book.currentPage/book.pageCount*100):0;
   return <article className={`book-card ${view}`} onClick={onOpen}>
     <div className="cover-wrap">
-      {book.coverUrl?<img src={book.coverUrl} alt={`Cover of ${book.title}`} />:<div className="cover-placeholder"><span>{book.title}</span><small>{book.authors.join(", ")}</small></div>}
+      {book.coverUrl?<CoverImage reference={book.coverUrl} alt={`Cover of ${book.title}`} />:<div className="cover-placeholder"><span>{book.title}</span><small>{book.authors.join(", ")}</small></div>}
       <div className="cover-overlay"><StatusBadge status={book.status}/><button aria-label={`More actions for ${book.title}`} onClick={e=>{e.stopPropagation();onOpen()}}><MoreHorizontal size={17}/></button></div>
       {book.format==="Audiobook"&&<span className="format-corner"><Headphones size={14}/></span>}
       {book.status==="Reading"&&progress>0&&<span className="cover-progress"><i style={{width:`${progress}%`}}/></span>}
