@@ -91,8 +91,10 @@ h1,h2,h3{letter-spacing:-.01em}
 .sidebar-brand{padding:2px 8px 14px;flex:none}
 .sidebar-brand img{display:block;width:158px;max-width:100%;height:auto}
 .sidebar-brand .sidebar-logo-dark{display:none}
-[data-theme="dark"] .sidebar-brand .sidebar-logo-light{display:none}
-[data-theme="dark"] .sidebar-brand .sidebar-logo-dark{display:block}
+[data-theme="dark"] .sidebar-brand .sidebar-logo-light,[data-theme="mocha"] .sidebar-brand .sidebar-logo-light{display:none}
+[data-theme="dark"] .sidebar-brand .sidebar-logo-dark,[data-theme="mocha"] .sidebar-brand .sidebar-logo-dark{display:block}
+.setting-row:has(.theme-choice){flex-wrap:wrap}
+.theme-choice{flex-wrap:wrap;justify-content:flex-end;gap:2px;max-width:100%}
 .mac-sidebar nav{display:flex;flex-direction:column;gap:1px}
 .sb-section{margin-top:14px}
 .sb-heading{margin:4px 10px 6px;font-size:11px;font-weight:600;color:var(--faint)}

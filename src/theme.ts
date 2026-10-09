@@ -16,7 +16,7 @@ export function readThemePreference(): ThemePreference {
   }
 }
 
-export function resolveTheme(preference: ThemePreference, systemDark = query()?.matches ?? false): string {
+export function resolveTheme(preference: ThemePreference, systemDark = query()?.matches ?? false): Exclude<ThemePreference, "system"> {
   return preference === "system" ? (systemDark ? "dark" : "light") : preference;
 }
 
