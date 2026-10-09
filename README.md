@@ -2,6 +2,8 @@
 
 The official open-book M logo, theme variants and icon regeneration instructions are documented in [the brand guide](docs/BRAND.md).
 
+Covers are preloaded for nearby shelves and likely next tabs, with decoded images reused across navigation. Loading limits, regression evidence and remaining desktop acceptance checks are in [cover navigation performance](docs/COVER-NAVIGATION.md).
+
 A clean way to keep track of your literature.
 
 Meridian is a private, local-first desktop application for cataloguing a personal book library. It uses Tauri 2, React, TypeScript, Rust, and SQLite. The warm, book-forward interface is based on the supplied LibMAN design references in `reference-ui/screens`.

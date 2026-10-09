@@ -44,4 +44,6 @@ Debug sample initialization is a single transaction and reuses existing named co
 
 ## Backup boundary
 
+Frontend cover readiness lives in `src/services/coverReadiness.ts`, separate from native reference resolution in `library.ts`. One shared bounded decode queue serves every CoverImage surface, prioritizes visible requests, and preserves decoded images across page remounts. Successful restores invalidate both layers; generation checks prevent older work from populating a restored cache. See [cover navigation performance](COVER-NAVIGATION.md).
+
 src-tauri/src/backup.rs owns schema-1 snapshot SQL, strict JSON validation in isolated storage, safe filesystem publication and transactional replacement. LibraryService owns the connection lock; commands delegate operations; Settings validates and confirms through libraryService. Legacy catalog export remains a separate consistent read. covers.rs owns bounded image decoding/normalization and immutable content-based storage. portable.rs owns staged ZIP inspection, review digests, complete recovery archives and cover publication before catalog commit. Native state shares LibraryService through an Arc so heavy operations can run on worker threads while preserving its connection mutex. UI surfaces use CoverImage and the typed service boundary. See COVERS-PORTABLE-BACKUP.md.

@@ -3,9 +3,11 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import type { BackupSummary, RestoreResult, ImportedCover, CoverStorage, BackupFileSelection } from "../types";
 import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, MetadataResult, Statistics } from "../types";
 import { demoBooks, demoCollections } from "./demo";
+import { CoverReadiness } from "./coverReadiness";
 
 const inTauri = () => "__TAURI_INTERNALS__" in window;
 const coverCache = new Map<string, Promise<string>>();
+export const coverReadiness = new CoverReadiness(reference => libraryService.resolveCover(reference));
 const KEY = "meridian-demo-library-v1";
 const COLLECTION_KEY = "meridian-demo-collections-v1";
 
@@ -92,7 +94,8 @@ export const libraryService = {
   async resolveCover(reference:string):Promise<string>{
     if(!reference.startsWith('meridian-cover:'))return reference;
     let cached=coverCache.get(reference);
-    if(!cached){cached=invoke<string>('read_cover',{reference}).catch(error=>{coverCache.delete(reference);throw error});coverCache.set(reference,cached);if(coverCache.size>128)coverCache.delete(coverCache.keys().next().value!);}
+    if(cached){coverCache.delete(reference);coverCache.set(reference,cached);}
+    if(!cached){cached=invoke<string>('read_cover',{reference}).catch(error=>{if(coverCache.get(reference)===cached)coverCache.delete(reference);throw error});coverCache.set(reference,cached);if(coverCache.size>128)coverCache.delete(coverCache.keys().next().value!);}
     return cached;
   },
   async getCoverStorage():Promise<CoverStorage>{return inTauri()?invoke('get_cover_storage'):{files:0,bytes:0};},
@@ -104,7 +107,7 @@ export const libraryService = {
     return {...inspection,path,name:path.split(/[\\/]/).pop()||path};
   },
   async restoreBackupFile(selection:BackupFileSelection):Promise<RestoreResult>{
-    const result=await invoke<RestoreResult>('restore_backup_file',{path:selection.path,digest:selection.digest});coverCache.clear();return result;
+    const result=await invoke<RestoreResult>('restore_backup_file',{path:selection.path,digest:selection.digest});coverCache.clear();coverReadiness.clear();return result;
   },
   async inspectBackup(json:string):Promise<BackupSummary>{
     if(!inTauri()) throw new Error("Database restore is available in the desktop app.");
@@ -112,7 +115,7 @@ export const libraryService = {
   },
   async restoreBackup(json:string):Promise<RestoreResult>{
     if(!inTauri()) throw new Error("Database restore is available in the desktop app.");
-    return invoke("restore_backup",{json});
+    const result=await invoke<RestoreResult>("restore_backup",{json});coverCache.clear();coverReadiness.clear();return result;
   },
-  resetDemo(){ localStorage.removeItem(KEY); localStorage.removeItem(COLLECTION_KEY); }
+  resetDemo(){ localStorage.removeItem(KEY); localStorage.removeItem(COLLECTION_KEY); coverCache.clear();coverReadiness.clear(); }
 };
