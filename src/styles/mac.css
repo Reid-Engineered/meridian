@@ -49,6 +49,11 @@ h1,h2,h3{letter-spacing:-.01em}
   border:1px solid var(--border-soft);box-shadow:var(--float-shadow);backdrop-filter:blur(30px) saturate(1.4);
   display:flex;flex-direction:column;padding:10px 10px 12px;overflow-y:auto}
 .traffic-space{height:30px;flex:none}
+.sidebar-brand{padding:2px 8px 14px;flex:none}
+.sidebar-brand img{display:block;width:158px;max-width:100%;height:auto}
+.sidebar-brand .sidebar-logo-dark{display:none}
+[data-theme="dark"] .sidebar-brand .sidebar-logo-light{display:none}
+[data-theme="dark"] .sidebar-brand .sidebar-logo-dark{display:block}
 .mac-sidebar nav{display:flex;flex-direction:column;gap:1px}
 .sb-section{margin-top:14px}
 .sb-heading{margin:4px 10px 6px;font-size:11px;font-weight:600;color:var(--faint)}
@@ -148,7 +153,7 @@ h1,h2,h3{letter-spacing:-.01em}
   .mac-shell{display:block;height:auto}
   .mac-content{margin-left:0;height:auto;min-height:100vh;padding-bottom:72px}
   .mac-sidebar{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:58px;flex-direction:row;padding:5px;overflow-x:auto;overflow-y:hidden}
-  .mac-sidebar .traffic-space,.sb-now,.sb-count{display:none}
+  .mac-sidebar .traffic-space,.mac-sidebar .sidebar-brand,.sb-now,.sb-count{display:none}
   /* Collections stay reachable: keep the All Collections entry, hide the individual rows. */
   .mac-sidebar .sb-section{margin:0;flex:none}
   .sb-section .sb-heading,.sb-section .sb-row:not(.sb-keep){display:none}
