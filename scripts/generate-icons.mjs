@@ -10,20 +10,28 @@
 // the 16, 32 and 16@2x entries in icon.icns. Larger sizes keep the master.
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, copyFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const icons = join(root, 'src-tauri', 'icons');
 const master = join(icons, 'source', 'meridian-icon.svg');
 const small = join(icons, 'source', 'meridian-icon-small.svg');
-const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+
+// Run the installed CLI's JavaScript entry with this Node, never through a
+// shell: a shell (needed for npx.cmd on Windows) joins arguments unquoted, so
+// paths containing spaces would split.
+const require = createRequire(import.meta.url);
+const cliPackage = require.resolve('@tauri-apps/cli/package.json');
+const tauriCli = join(dirname(cliPackage), require(cliPackage).bin.tauri);
 
 function tauriIcon(args) {
-  const result = spawnSync(npx, ['tauri', 'icon', ...args], {
-    cwd: root, stdio: 'inherit', shell: process.platform === 'win32'
+  const result = spawnSync(process.execPath, [tauriCli, 'icon', ...args], {
+    cwd: root, stdio: 'inherit', shell: false
   });
+  if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`tauri icon ${args.join(' ')} failed (exit ${result.status})`);
 }
 
@@ -71,6 +79,14 @@ function patchIcns(file, png16, png32) {
     if (!drop.has(type)) chunks.push(data.subarray(at, at + length));
     at += length;
   }
+  // `tauri icon` writes chunks in varying order; sort by size so regenerating
+  // unchanged sources gives a byte-identical file.
+  const order = ['ic12', 'ic07', 'ic13', 'ic08', 'ic14', 'ic09', 'ic10'];
+  const rank = chunk => {
+    const index = order.indexOf(chunk.toString('ascii', 0, 4));
+    return index === -1 ? order.length : index;
+  };
+  chunks.sort((a, b) => rank(a) - rank(b) || a.toString('ascii', 0, 4).localeCompare(b.toString('ascii', 0, 4)));
   const chunk = (type, png) => {
     const head = Buffer.alloc(8);
     head.write(type, 0, 'ascii');
