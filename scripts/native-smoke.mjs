@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
@@ -11,7 +11,8 @@ const data = join(run, 'data'), install = join(run, 'installed');
 mkdirSync(data, {recursive:true});
 writeFileSync(join(data, '.meridian-smoke'), 'Meridian isolated smoke test\n');
 const report = {run, passed:false, stages:[], uninstallPassed:false};
-const installer = join(root, 'src-tauri', 'target', 'release', 'bundle', 'nsis', 'Meridian Smoke Test_0.1.0_x64-setup.exe');
+const target = resolve(root, 'src-tauri', process.env.CARGO_TARGET_DIR ?? 'target');
+const installer = join(target, 'release', 'bundle', 'nsis', 'Meridian Smoke Test_0.1.0_x64-setup.exe');
 const execute = (file, args, verbatim=false, timeout=120_000) => {
   const result = spawnSync(file, args, {cwd:root, stdio:'inherit', timeout, windowsVerbatimArguments:verbatim});
   if (result.error || result.status !== 0) throw new Error(`${file}: ${result.error?.message ?? `exit ${result.status}`}`);
