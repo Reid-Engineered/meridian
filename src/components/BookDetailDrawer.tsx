@@ -1,10 +1,12 @@
 import { CalendarDays, Edit3, MapPin, Quote, Trash2, X } from "lucide-react";
 import type { BookDetail } from "../types";
 import { Stars, StatusBadge } from "./BookCard";
+import { useModalFocus } from "./useModalFocus";
 
 export function BookDetailDrawer({book,onClose,onEdit,onDelete}:{book:BookDetail;onClose:()=>void;onEdit:()=>void;onDelete:()=>void}){
+  const modalRef = useModalFocus<HTMLDivElement>(onClose);
   const progress=book.pageCount&&book.currentPage?Math.round(book.currentPage/book.pageCount*100):0;
-  return <div className="drawer-layer" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><aside className="detail-drawer" aria-label={`${book.title} details`}>
+  return <div ref={modalRef} className="drawer-layer" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><aside className="detail-drawer" role="dialog" aria-modal="true" aria-label={`${book.title} details`} tabIndex={-1}>
     <header className="drawer-header"><span>Book details</span><button className="icon-button" onClick={onClose} aria-label="Close"><X size={19}/></button></header>
     <div className="drawer-scroll"><section className="detail-hero"><div className="detail-cover">{book.coverUrl?<img src={book.coverUrl} alt=""/>:<div className="cover-placeholder"><span>{book.title}</span></div>}</div><div><StatusBadge status={book.status}/><h2>{book.title}</h2>{book.subtitle&&<p className="subtitle">{book.subtitle}</p>}<p className="detail-authors">{book.authors.join(", ")||"Unknown author"}</p><Stars value={book.rating??0}/>{book.series&&<p className="series">{book.series}{book.seriesPosition?` · Book ${book.seriesPosition}`:""}</p>}</div></section>
       {book.status==="Reading"&&book.pageCount&&<section className="reading-progress"><div><span>Reading progress</span><strong>{progress}%</strong></div><div className="progress-track"><i style={{width:`${progress}%`}}/></div><small>Page {book.currentPage??0} of {book.pageCount}</small></section>}

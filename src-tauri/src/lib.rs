@@ -1,13 +1,20 @@
-mod commands;mod database;mod domain;mod error;mod metadata;mod repositories;mod services;mod state;
+mod backup;mod commands;mod database;mod domain;mod error;mod metadata;mod repositories;mod services;mod state;
 use tauri::Manager;
+#[cfg(feature="smoke-test")] mod smoke;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run(){
-  tauri::Builder::default().plugin(tauri_plugin_dialog::init()).setup(|app|{
-    let data=app.path().app_data_dir().map_err(|_|std::io::Error::new(std::io::ErrorKind::NotFound,"Application data directory unavailable"))?;std::fs::create_dir_all(&data)?;let covers=data.join("covers");std::fs::create_dir_all(&covers)?;let db_path=data.join("library.db");let mut conn=database::open(&db_path)?;
-    #[cfg(debug_assertions)] services::seed_development(&mut conn)?;
+  let builder=tauri::Builder::default().plugin(tauri_plugin_dialog::init()).setup(|app|{
+    #[cfg(feature="smoke-test")] let test=smoke::configuration()?;
+    #[cfg(feature="smoke-test")] let data=test.directory.clone();
+    #[cfg(not(feature="smoke-test"))] let data=app.path().app_data_dir().map_err(|_|std::io::Error::new(std::io::ErrorKind::NotFound,"Application data directory unavailable"))?;std::fs::create_dir_all(&data)?;let covers=data.join("covers");std::fs::create_dir_all(&covers)?;let db_path=data.join("library.db");let mut conn=database::open(&db_path)?;
+    #[cfg(all(debug_assertions,not(feature="smoke-test")))] services::seed_development(&mut conn)?;
+    #[cfg(feature="smoke-test")] app.manage(test);
     app.manage(state::AppState{library:services::LibraryService::new(conn),database_path:db_path,covers_path:covers});Ok(())
-  }).invoke_handler(tauri::generate_handler![commands::list_books,commands::get_book,commands::create_book,commands::update_book,commands::delete_book,commands::list_collections,commands::create_collection,commands::rename_collection,commands::delete_collection,commands::get_statistics,commands::lookup_isbn,commands::get_app_info,commands::export_library]).run(tauri::generate_context!()).expect("Meridian failed to start");
+  });
+  #[cfg(feature="smoke-test")] let builder=builder.on_page_load(smoke::start).invoke_handler(tauri::generate_handler![smoke::smoke_context,smoke::smoke_finish,commands::list_books,commands::get_book,commands::create_book,commands::update_book,commands::delete_book,commands::list_collections,commands::create_collection,commands::rename_collection,commands::delete_collection,commands::get_statistics,commands::lookup_isbn,commands::get_app_info,commands::export_library,commands::create_backup,commands::save_backup,commands::inspect_backup,commands::restore_backup]);
+  #[cfg(not(feature="smoke-test"))] let builder=builder.invoke_handler(tauri::generate_handler![commands::list_books,commands::get_book,commands::create_book,commands::update_book,commands::delete_book,commands::list_collections,commands::create_collection,commands::rename_collection,commands::delete_collection,commands::get_statistics,commands::lookup_isbn,commands::get_app_info,commands::export_library,commands::create_backup,commands::save_backup,commands::inspect_backup,commands::restore_backup]);
+  builder.run(tauri::generate_context!()).expect("Meridian failed to start");
 }
 
 #[cfg(test)] mod tests{

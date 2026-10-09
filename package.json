@@ -8,6 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "verify": "node scripts/verify.mjs",
+    "smoke:native": "node scripts/native-smoke.mjs",
+    "build:desktop": "node scripts/desktop-build.mjs",
     "tauri": "tauri"
   },
   "dependencies": {

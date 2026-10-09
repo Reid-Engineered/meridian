@@ -1,0 +1,8 @@
+{
+  "productName": "Meridian Smoke Test",
+  "identifier": "com.meridian.smoke-test",
+  "app": {
+    "windows": [{"label":"main","title":"Meridian Smoke Test","visible":false,"width":1440,"height":900,"minWidth":980,"minHeight":640}]
+  },
+  "bundle": {"targets":["nsis"]}
+}

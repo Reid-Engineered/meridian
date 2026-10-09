@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useId, useRef, useState } from "react";
+import { useModalFocus } from "./useModalFocus";
 import { BookOpen, Search, Upload, X } from "lucide-react";
 import type { BookDetail, BookFormat, BookInput, Collection, MetadataResult, ReadingStatus } from "../types";
 import { EMPTY_BOOK } from "../types";
@@ -16,18 +17,25 @@ const asInput=(book?:BookDetail):BookInput=>book?{
 export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;collections:Collection[];onSave:(b:BookInput)=>Promise<void>;onClose:()=>void}){
   const [form,setForm]=useState<BookInput>(()=>asInput(book)); const [tab,setTab]=useState<"details"|"reading"|"copy">("details");
   const [authorText,setAuthorText]=useState(form.authors.join(", ")); const [tagText,setTagText]=useState(form.tags.join(", ")); const [error,setError]=useState(""); const [saving,setSaving]=useState(false); const [isbnBusy,setIsbnBusy]=useState(false);
-  useEffect(()=>{const esc=(e:KeyboardEvent)=>e.key==="Escape"&&onClose();window.addEventListener("keydown",esc);return()=>window.removeEventListener("keydown",esc)},[onClose]);
+  const modalRef = useModalFocus<HTMLDivElement>(onClose);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const id = useId();
+  const tabs = ["details", "reading", "copy"] as const;
+  const selectTab = (next: typeof tab) => { setTab(next); };
   const set=<K extends keyof BookInput>(key:K,value:BookInput[K])=>setForm(f=>({...f,[key]:value}));
   const applyMeta=(m:MetadataResult)=>setForm(f=>({...f,title:m.title||f.title,subtitle:m.subtitle??f.subtitle,authors:m.authors.length?m.authors:f.authors,publisher:m.publisher??f.publisher,publicationYear:m.publicationYear??f.publicationYear,pageCount:m.pageCount??f.pageCount,coverUrl:m.coverUrl??f.coverUrl,isbn10:m.isbn10??f.isbn10,isbn13:m.isbn13??f.isbn13,description:m.description??f.description}));
-  const lookup=async()=>{const isbn=form.isbn13||form.isbn10;if(!isbn){setError("Enter an ISBN first.");return}setIsbnBusy(true);setError("");try{const m=await libraryService.lookupIsbn(isbn);applyMeta(m);setAuthorText(m.authors.join(", "));}catch(e){setError(e instanceof Error?e.message:"Metadata lookup is unavailable. You can continue manually.");}finally{setIsbnBusy(false)}};
-  const submit=async(e:React.FormEvent)=>{e.preventDefault(); const authors=authorText.split(",").map(x=>x.trim()).filter(Boolean);const tags=tagText.split(",").map(x=>x.trim()).filter(Boolean);if(!form.title.trim()){setError("A title is required.");setTab("details");return}setSaving(true);setError("");try{await onSave({...form,title:form.title.trim(),authors,tags});}catch(e){setError(e instanceof Error?e.message:"The book could not be saved.");setSaving(false)}};
-  return <div className="modal-backdrop"><form className="book-form" onSubmit={submit} aria-label={book?"Edit book":"Add book"}>
-    <header className="form-header"><div><span className="form-kicker">{book?"Library copy":"New addition"}</span><h2>{book?"Edit book":"Add to your library"}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close"><X size={20}/></button></header>
-    <div className="form-tabs" role="tablist">{(["details","reading","copy"] as const).map(t=><button type="button" role="tab" aria-selected={tab===t} className={tab===t?"active":""} onClick={()=>setTab(t)} key={t}>{t==="copy"?"My copy":t[0].toUpperCase()+t.slice(1)}</button>)}</div>
-    <div className="form-scroll">
+  const lookup=async()=>{const isbn=form.isbn13||form.isbn10;if(!isbn){setError("Enter an ISBN first.");return}setIsbnBusy(true);setError("");try{const m=await libraryService.lookupIsbn(isbn);applyMeta(m);setAuthorText(m.authors.join(", "));}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"Metadata lookup is unavailable. You can continue manually.");}finally{setIsbnBusy(false)}};
+  const submit=async(e:React.FormEvent)=>{e.preventDefault(); const authors=authorText.split(",").map(x=>x.trim()).filter(Boolean);const tags=tagText.split(",").map(x=>x.trim()).filter(Boolean);if(!form.title.trim()){setError("A title is required.");setTab("details");queueMicrotask(()=>titleRef.current?.focus());return}setSaving(true);setError("");try{await onSave({...form,title:form.title.trim(),authors,tags});}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"The book could not be saved.");setSaving(false)}};
+  return <div ref={modalRef} className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} tabIndex={-1}><form className="book-form" onSubmit={submit} aria-label={book?"Edit book":"Add book"}>
+    <header className="form-header"><div><span className="form-kicker">{book?"Library copy":"New addition"}</span><h2 id={`${id}-title`}>{book?"Edit book":"Add to your library"}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close"><X size={20}/></button></header>
+    <div className="form-tabs" role="tablist" aria-label="Book fields">{tabs.map((t,index)=><button type="button" role="tab" id={`${id}-${t}`} aria-controls={`${id}-panel`} aria-selected={tab===t} tabIndex={tab===t?0:-1} className={tab===t?"active":""} onClick={()=>selectTab(t)} onKeyDown={e=>{
+      const next=e.key==="ArrowRight"?(index+1)%tabs.length:e.key==="ArrowLeft"?(index+tabs.length-1)%tabs.length:e.key==="Home"?0:e.key==="End"?tabs.length-1:null;
+      if(next!==null){e.preventDefault();selectTab(tabs[next]);document.getElementById(`${id}-${tabs[next]}`)?.focus();}
+    }} key={t}>{t==="copy"?"My copy":t[0].toUpperCase()+t.slice(1)}</button>)}</div>
+    <div className="form-scroll" role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${tab}`}>
     {tab==="details"&&<>
       <div className="isbn-lookup"><Search size={17}/><input value={form.isbn13||form.isbn10||""} onChange={e=>set("isbn13",e.target.value)} placeholder="ISBN-10 or ISBN-13" aria-label="ISBN"/><button type="button" onClick={lookup} disabled={isbnBusy}>{isbnBusy?"Looking up…":"Look up"}</button></div>
-      <div className="field-grid"><label className="span-2">Title <b>*</b><input autoFocus value={form.title} onChange={e=>set("title",e.target.value)}/></label><label className="span-2">Subtitle<input value={form.subtitle} onChange={e=>set("subtitle",e.target.value)}/></label>
+      <div className="field-grid"><label className="span-2"><span>Title <b>*</b></span><input data-modal-initial ref={titleRef} aria-required="true" value={form.title} onChange={e=>set("title",e.target.value)}/></label><label className="span-2">Subtitle<input value={form.subtitle} onChange={e=>set("subtitle",e.target.value)}/></label>
       <label className="span-2">Authors <small>Separate names with commas</small><input value={authorText} onChange={e=>setAuthorText(e.target.value)} placeholder="Ursula K. Le Guin"/></label>
       <label>Publication year<input type="number" value={form.publicationYear??""} onChange={e=>set("publicationYear",e.target.value?+e.target.value:undefined)}/></label><label>Publisher<input value={form.publisher} onChange={e=>set("publisher",e.target.value)}/></label>
       <label>Series<input value={form.series} onChange={e=>set("series",e.target.value)}/></label><label>Series number<input type="number" step="0.1" value={form.seriesPosition??""} onChange={e=>set("seriesPosition",e.target.value?+e.target.value:undefined)}/></label>

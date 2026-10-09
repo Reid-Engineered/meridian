@@ -10,7 +10,7 @@ export function Topbar({page,dark,onToggleTheme,search,onSearch}:{page:Page;dark
   const t=titles[page];
   return <header className="topbar"><div><p className="eyebrow">{t.eyebrow}</p><h1>{t.title}</h1></div>
     <div className="topbar-actions">
-      {page==="library"&&<label className="global-search"><Search size={17}/><input value={search} onChange={e=>onSearch(e.target.value)} placeholder="Search your library…" aria-label="Search your library"/><kbd>⌘K</kbd></label>}
+      {page==="library"&&<label className="global-search"><Search size={17}/><input value={search} onChange={e=>onSearch(e.target.value)} placeholder="Search your library…" aria-label="Search your library"/><kbd>{navigator.platform.includes("Mac")?"⌘K":"Ctrl K"}</kbd></label>}
       <button className="icon-button" onClick={onToggleTheme} aria-label="Toggle theme">{dark?<Sun size={18}/>:<Moon size={18}/>}</button>
     </div></header>;
 }

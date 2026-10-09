@@ -8,7 +8,7 @@ impl LibraryRepository {
   pub fn create(conn:&mut Connection,input:&BookInput)->AppResult<BookDetail>{
     if input.title.trim().is_empty(){return Err(AppError::MissingTitle)} let tx=conn.transaction()?;let id=Self::insert_graph(&tx,input)?;tx.commit()?;Self::get(conn,id)
   }
-  fn insert_graph(tx:&Transaction,input:&BookInput)->AppResult<i64>{
+  pub(crate) fn insert_graph(tx:&Transaction,input:&BookInput)->AppResult<i64>{
     tx.execute("INSERT INTO works(title,subtitle,description,original_publication_year,series,series_position) VALUES(?1,?2,?3,?4,?5,?6)",params![input.title.trim(),clean(&input.subtitle),clean(&input.description),input.publication_year,clean(&input.series),input.series_position])?;
     let work=tx.last_insert_rowid();
     for (pos,name) in input.authors.iter().map(|x|x.trim()).filter(|x|!x.is_empty()).enumerate(){tx.execute("INSERT INTO authors(name) VALUES(?1) ON CONFLICT(name) DO NOTHING",[name])?;let aid:i64=tx.query_row("SELECT id FROM authors WHERE name=?1 COLLATE NOCASE",[name],|r|r.get(0))?;tx.execute("INSERT INTO work_authors(work_id,author_id,position) VALUES(?1,?2,?3)",params![work,aid,pos as i64])?;}

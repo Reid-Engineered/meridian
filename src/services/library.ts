@@ -1,4 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
+import { save } from "@tauri-apps/plugin-dialog";
+import type { BackupSummary, RestoreResult } from "../types";
 import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, MetadataResult, Statistics } from "../types";
 import { demoBooks, demoCollections } from "./demo";
 
@@ -69,5 +71,19 @@ export const libraryService = {
   async lookupIsbn(isbn:string):Promise<MetadataResult>{ if(inTauri()) return invoke("lookup_isbn",{isbn}); throw new Error("ISBN lookup is available in the desktop app."); },
   async getAppInfo():Promise<AppInfo>{ return inTauri()?invoke("get_app_info"):{databasePath:"Browser preview · local storage",coversPath:"Managed by the desktop app",version:"0.1.0"}; },
   async exportLibrary():Promise<string>{ return inTauri()?invoke("export_library"):JSON.stringify({version:1,books:localBooks(),collections:localCollections()},null,2); },
+  async saveBackup():Promise<boolean>{
+    if(!inTauri()) throw new Error("Database backup is available in the desktop app.");
+    const path=await save({defaultPath:`meridian-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`,filters:[{name:"Meridian backup",extensions:["json"]}]});
+    if(!path)return false;
+    await invoke("save_backup",{path});return true;
+  },
+  async inspectBackup(json:string):Promise<BackupSummary>{
+    if(!inTauri()) throw new Error("Database restore is available in the desktop app.");
+    return invoke("inspect_backup",{json});
+  },
+  async restoreBackup(json:string):Promise<RestoreResult>{
+    if(!inTauri()) throw new Error("Database restore is available in the desktop app.");
+    return invoke("restore_backup",{json});
+  },
   resetDemo(){ localStorage.removeItem(KEY); localStorage.removeItem(COLLECTION_KEY); }
 };

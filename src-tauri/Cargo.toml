@@ -5,6 +5,9 @@ description = "A private, local-first personal library"
 authors = ["Meridian"]
 edition = "2021"
 
+[features]
+smoke-test = []
+
 [lib]
 name = "meridian_lib"
 crate-type = ["rlib"]

@@ -6,3 +6,7 @@ src-tauri/gen/schemas/
 *.db
 *.db-shm
 *.db-wal
+fixtures/generated*/
+verification/latest.json
+verification/generated-icons/
+verification/native-smoke/

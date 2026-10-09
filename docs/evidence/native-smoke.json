@@ -1,0 +1,64 @@
+{
+  "checkedOn": "2026-10-08",
+  "toolchain": "stable-x86_64-pc-windows-gnu",
+  "passed": true,
+  "uninstallPassed": true,
+  "stages": [
+    {
+      "stage": "initial",
+      "passed": true,
+      "checks": [
+        "release first launch has an empty catalog",
+        "release has no seeded collections",
+        "native creation preserves ordered authors and relations",
+        "native update preserves metadata",
+        "invalid native update rejects and rolls back",
+        "native search finds author",
+        "native collection rename",
+        "native export preserves current catalog"
+      ],
+      "layout": null
+    },
+    {
+      "stage": "reopen",
+      "passed": true,
+      "checks": [
+        "native process restart preserves all book fields",
+        "native process restart preserves both collection memberships",
+        "native statistics reflect persisted state"
+      ],
+      "layout": null
+    },
+    {
+      "stage": "scaled",
+      "passed": true,
+      "checks": [
+        "native process restart preserves all book fields",
+        "native process restart preserves both collection memberships",
+        "native statistics reflect persisted state",
+        "200 percent native WebView zoom renders the application",
+        "200 percent native WebView zoom activates compact navigation",
+        "200 percent native WebView zoom has no document horizontal overflow",
+        "200 percent native WebView zoom keeps Add book visible"
+      ],
+      "layout": {
+        "height": 450,
+        "width": 720,
+        "zoom": 2
+      }
+    },
+    {
+      "stage": "cleanup",
+      "passed": true,
+      "checks": [
+        "native process restart preserves all book fields",
+        "native process restart preserves both collection memberships",
+        "native statistics reflect persisted state",
+        "deleting a collection keeps the owned copy and remaining membership",
+        "native delete removes the owned copy",
+        "native collection cleanup"
+      ],
+      "layout": null
+    }
+  ]
+}

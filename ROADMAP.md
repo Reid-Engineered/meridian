@@ -7,15 +7,16 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 | Agent | Primary responsibility |
 | --- | --- |
 | **Codex** | Rust, SQLite, Tauri commands, filesystem integration, builds, automated tests |
-| **Claude** | React UX, visual design, interaction design, accessibility, frontend tests |
-| **Agy** | Product acceptance, test fixtures, edge-case review, documentation, release QA |
+| **Agy** | React UX, visual design, interaction design, accessibility, frontend tests, release screenshots |
+| **Claude** | Independent design and implementation review, product acceptance, edge-case analysis, documentation, release QA |
 
 ## Working agreement
 
 - One agent owns each task and its files until the task is merged.
-- Codex defines TypeScript/Rust IPC contracts before Claude connects new UI.
+- Codex defines TypeScript/Rust IPC contracts before Agy connects new UI.
 - Schema changes always include a migration and rollback/recovery notes.
-- Agy verifies acceptance criteria independently and records failures as reproducible issues.
+- Claude reviews Agy's designs and the integrated implementation independently, then records failures as reproducible issues.
+- Agy owns visual decisions and UI implementation; Claude recommends changes but does not become the design owner.
 - No phase is complete until its automated tests and manual acceptance checks pass.
 - Preserve Meridian's local-first model: no account system, remote backend, telemetry, or required internet connection.
 
@@ -27,31 +28,35 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 
 ### Codex
 
-- [ ] Run and record the frontend build, frontend tests, Rust core tests, and Tauri release build.
-- [ ] Add a single cross-platform verification script for the standard checks.
-- [ ] Document the current IPC commands and shared TypeScript/Rust models.
-- [ ] Add migration-version tests for new, current, and partially migrated databases.
-- [ ] Create representative test databases containing 0, 10, 1,000, and 10,000 books.
-
-### Claude
-
-- [ ] Audit the current UI against the supplied reference screenshots.
-- [ ] Document layout, color, typography, spacing, and interaction tokens.
-- [ ] Review keyboard navigation, visible focus, dialog focus trapping, and 200% text scaling.
-- [ ] Produce a prioritized UX issue list without redesigning working flows unnecessarily.
+- [x] Run and record the frontend build, frontend tests, Rust core tests, and Tauri release build.
+- [x] Add a single cross-platform verification script for the standard checks.
+- [x] Document the current IPC commands and shared TypeScript/Rust models.
+- [x] Add migration-version tests for new, current, and partially migrated databases.
+- [x] Create representative test databases containing 0, 10, 1,000, and 10,000 books.
 
 ### Agy
 
-- [ ] Convert the MVP requirements into a pass/fail acceptance matrix.
+- [ ] Audit the current UI against the supplied reference screenshots.
+- [x] Document layout, color, typography, spacing, and interaction tokens.
+- [x] Review keyboard navigation, visible focus, dialog focus trapping, and 200% WebView zoom (OS text-only scaling and screen-reader qualification remain open).
+- [x] Produce a prioritized UX issue list without redesigning working flows unnecessarily.
+
+### Claude
+
+- [x] Convert the MVP requirements into a pass/fail acceptance matrix.
 - [ ] Verify clean install, first launch, empty library, seeded development mode, and relaunch persistence.
-- [ ] Define reusable book, author, ISBN, tag, collection, and reading-history fixtures.
-- [ ] Record known limitations and confirm they match `README.md`.
+- [x] Define reusable book, author, ISBN, tag, collection, and latest-reading-state fixtures (full history is planned).
+- [x] Record known limitations and confirm they match `README.md`.
 
 ### Exit criteria
 
-- [ ] All existing automated checks pass.
+- [x] All standard automated checks pass (GNU toolchain on this Windows host).
 - [ ] The acceptance matrix and design audit are committed.
-- [ ] Database fixtures are isolated from the user's real library.
+- [x] Database fixtures are isolated from the user's real library.
+
+**October 8 baseline:** all standard automated checks and MSI/NSIS builds passed; evidence and preliminary source audit are in `docs/BASELINE.md` and `docs/UI-AUDIT.md`. Named roles above are responsibility categories; this baseline increment was performed in this chat. Native installation, live visual comparison and keyboard/scaling checks remain open.
+
+**October 8 follow-up:** separate-product installed native smoke check passed 24 WebView/IPC assertions and uninstall; live browser keyboard/create/edit/reload/collection flows passed. Missing GNU WebView2 loader packaging, modal focus, tab navigation and compact Add book were fixed. Eight frontend tests and eleven Rust tests pass. `docs/PHASE0-SMOKE.md` records the exact scope; clean-profile, upgrade, NVDA and exhaustive visual qualification remain open.
 
 ---
 
@@ -64,20 +69,20 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Implement a native cover-file picker and copy selected images into the application-data cover directory.
 - [ ] Validate cover type and size, generate collision-safe filenames, and clean up failed imports.
 - [ ] Store portable cover references rather than machine-specific absolute paths where possible.
-- [ ] Implement transactional JSON backup restoration with schema-version validation.
-- [ ] Create an automatic timestamped backup before every restore or bulk import.
+- [x] Implement transactional JSON database backup restoration with schema-version validation (version 2; legacy catalog exports are rejected).
+- [x] Create an automatic timestamped backup before every restore. Bulk import remains planned.
 - [ ] Implement CSV export and a staged CSV import service with duplicate detection.
 - [ ] Add Rust tests for cover copying, restore rollback, malformed backups, CSV parsing, and duplicate ISBNs.
 
-### Claude
+### Agy
 
 - [ ] Add native cover selection, preview, replace, and remove controls to the book form.
-- [ ] Build the backup restore confirmation and success/error states.
+- [x] Build the backup restore confirmation and success/error states (automated interaction checks pass; manual picker and visual qualification remain open).
 - [ ] Build a CSV import flow: choose file → map columns → validate → review → import.
 - [ ] Show row-level validation errors without discarding the user's mapping or corrections.
 - [ ] Add progress and completion summaries for large imports.
 
-### Agy
+### Claude
 
 - [ ] Prepare valid, malformed, legacy, duplicate-heavy, and Unicode backup/CSV fixtures.
 - [ ] Verify interrupted and failed restores leave the original library unchanged.
@@ -106,7 +111,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Add commands for author, tag, collection, publisher, and series suggestions.
 - [ ] Preserve manually entered values when metadata lookup fails or returns incomplete data.
 
-### Claude
+### Agy
 
 - [ ] Replace comma-separated author and tag fields with accessible removable chips and suggestions.
 - [ ] Add a metadata confirmation screen that clearly distinguishes fetched and existing values.
@@ -115,7 +120,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Add “Save and add another” without losing reusable values such as collection or shelf.
 - [ ] Improve inline validation and focus the first invalid field on submission.
 
-### Agy
+### Claude
 
 - [ ] Test ISBNs with spaces, hyphens, invalid checksums, missing results, and conflicting provider data.
 - [ ] Verify multiple-author ordering and names containing commas, diacritics, or non-Latin characters.
@@ -143,7 +148,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Add annual reading-goal storage and progress calculations.
 - [ ] Update statistics to avoid double-counting rereads unless explicitly requested.
 
-### Claude
+### Agy
 
 - [ ] Build a reading-session timeline on the book detail screen.
 - [ ] Add quick progress updates from library and Reading views.
@@ -151,7 +156,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Build quotes/highlights capture and browsing UI.
 - [ ] Add yearly goal progress without turning the app into a productivity dashboard.
 
-### Agy
+### Claude
 
 - [ ] Test rereads spanning different calendar years.
 - [ ] Verify page progress cannot exceed an edition's page count.
@@ -180,7 +185,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Add advanced search for exact phrases and field filters.
 - [ ] Optimize list/search queries and indexes using the 10,000-book fixture.
 
-### Claude
+### Agy
 
 - [ ] Build multi-select and a restrained bulk-action toolbar.
 - [ ] Add shelf and series browsing views.
@@ -189,7 +194,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Add recently viewed and recently added surfaces where they improve navigation.
 - [ ] Preserve usable layouts at narrow desktop widths and 200% scaling.
 
-### Agy
+### Claude
 
 - [ ] Measure startup, search, filtering, scrolling, and bulk-operation performance.
 - [ ] Verify smart collections update automatically after edits.
@@ -219,14 +224,14 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Test clean install, upgrade, migration, uninstall, and reinstall behavior.
 - [ ] Document the release and rollback procedure.
 
-### Claude
+### Agy
 
 - [ ] Complete final visual polish across light/dark themes and all empty/error/loading states.
 - [ ] Create current release screenshots for Library, Details, Collections, Reading, Statistics, and Settings.
 - [ ] Review all user-facing copy and destructive confirmations.
 - [ ] Finalize onboarding, keyboard-shortcut help, and release notes.
 
-### Agy
+### Claude
 
 - [ ] Execute the complete acceptance matrix on a clean Windows user profile.
 - [ ] Verify no development seed data appears in production.
@@ -247,8 +252,8 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 ## Suggested execution order
 
 1. **Codex** starts each phase by defining migrations, domain models, and IPC contracts.
-2. **Claude** begins the corresponding UI as soon as those contracts stabilize.
-3. **Agy** prepares fixtures and acceptance cases in parallel, then validates the integrated result.
+2. **Agy** begins the corresponding visual design and UI implementation as soon as those contracts stabilize.
+3. **Claude** prepares review cases in parallel, then reviews the design, accessibility, implementation, and integrated result.
 4. The phase owner closes failures before work begins on the next phase.
 
 ## Definition of done for every task
@@ -259,3 +264,5 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Keyboard, focus, light theme, and dark theme behavior are verified.
 - [ ] Offline behavior is preserved unless the feature is explicitly optional and network-based.
 - [ ] `README.md`, architecture notes, and this roadmap are updated when behavior changes.
+
+**October 8 backup increment:** version-2 full-catalog snapshots, isolated validation, transactional restore, automatic recovery files and desktop Settings controls are implemented. Six backup/storage tests, four restore-interaction tests and six installed native assertions pass; 12 frontend / 17 Rust / 30 native checks total. Covers remain separate, legacy catalog exports are not restorable, and abrupt-process/power-loss tests and manual dialog/accessibility acceptance remain open. See docs/BACKUP-RESTORE.md.

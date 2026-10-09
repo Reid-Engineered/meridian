@@ -72,6 +72,8 @@ export interface Statistics {
   formatCounts: { label: string; value: number }[]; activity: { label: string; value: number }[];
 }
 export interface AppInfo { databasePath: string; coversPath: string; version: string; }
+export interface BackupSummary { books: number; collections: number; readingRecords: number; }
+export interface RestoreResult { summary: BackupSummary; recoveryPath: string; }
 export interface BookQuery { search?: string; status?: string; format?: string; minRating?: number; collectionId?: number; sort?: string; }
 export interface MetadataResult { title: string; subtitle?: string; authors: string[]; publisher?: string; publicationYear?: number; pageCount?: number; coverUrl?: string; isbn10?: string; isbn13?: string; description?: string; }
 

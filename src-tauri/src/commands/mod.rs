@@ -13,4 +13,13 @@ use crate::{domain::{AppInfo,BookDetail,BookInput,BookQuery,Collection,MetadataR
 #[tauri::command] pub fn get_statistics(state:State<AppState>)->AppResult<Statistics>{state.library.statistics()}
 #[tauri::command] pub async fn lookup_isbn(isbn:String)->AppResult<MetadataResult>{metadata::lookup_isbn(&isbn).await}
 #[tauri::command] pub fn get_app_info(state:State<AppState>)->AppInfo{AppInfo{database_path:state.database_path.display().to_string(),covers_path:state.covers_path.display().to_string(),version:env!("CARGO_PKG_VERSION").into()}}
-#[tauri::command] pub fn export_library(state:State<AppState>)->AppResult<String>{let books=state.library.list(&BookQuery::default())?;let collections=state.library.collections()?;Ok(serde_json::to_string_pretty(&serde_json::json!({"version":1,"books":books,"collections":collections}))?)}
+#[tauri::command] pub fn export_library(state:State<AppState>)->AppResult<String>{state.library.export_catalog()}
+#[tauri::command] pub fn create_backup(state:State<AppState>)->AppResult<String>{state.library.backup()}
+#[tauri::command] pub fn save_backup(state:State<AppState>,path:String)->AppResult<()> {
+  crate::backup::save(&state.library.backup()?,std::path::Path::new(&path))
+}
+#[tauri::command] pub fn inspect_backup(json:String)->AppResult<crate::backup::Summary>{crate::backup::inspect(&json)}
+#[tauri::command] pub fn restore_backup(state:State<AppState>,json:String)->AppResult<crate::backup::RestoreResult>{
+  let parent=state.database_path.parent().ok_or(crate::error::AppError::Storage)?;
+  state.library.restore(&json,&parent.join("backups"))
+}

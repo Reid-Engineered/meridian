@@ -9,7 +9,7 @@ const items: {id:Page; label:string; icon:typeof BookOpen}[] = [
 export function Sidebar({page,onPage,onAdd}:{page:Page;onPage:(p:Page)=>void;onAdd:()=>void}) {
   return <aside className="sidebar">
     <div className="brand"><span className="brand-mark"><i/><i/><i/></span><span>Meridian</span></div>
-    <button className="add-button" onClick={onAdd}><Plus size={17}/> Add book <kbd>⌘N</kbd></button>
+    <button data-focus-fallback className="add-button" onClick={onAdd}><Plus size={17}/> Add book <kbd>{navigator.platform.includes("Mac")?"⌘N":"Ctrl N"}</kbd></button>
     <nav aria-label="Primary">
       <p className="nav-label">Your library</p>
       {items.map(({id,label,icon:Icon})=><button key={id} className={`nav-item ${page===id?"active":""}`} onClick={()=>onPage(id)}><Icon size={18}/><span>{label}</span></button>)}
