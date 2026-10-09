@@ -11,7 +11,8 @@
     "verify": "node scripts/verify.mjs",
     "smoke:native": "node scripts/native-smoke.mjs",
     "build:desktop": "node scripts/desktop-build.mjs",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.8.0",
