@@ -27,7 +27,7 @@ describe('dialog keyboard boundaries', () => {
     localStorage.clear();
     render(<App />);
     const book = await screen.findByRole('button', {name:'Open Dune'}); book.focus(); fireEvent.click(book);
-    const remove = screen.getByRole('button',{name:'Delete'}); remove.focus(); fireEvent.click(remove);
+    const remove = screen.getByRole('button',{name:'Remove from library'}); remove.focus(); fireEvent.click(remove);
     expect(document.activeElement).toBe(screen.getByRole('button',{name:'Cancel'}));
     fireEvent.keyDown(window,{key:'n',ctrlKey:true});
     expect(screen.queryByRole('dialog',{name:'Add to your library'})).toBeNull();

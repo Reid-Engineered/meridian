@@ -1,11 +1,10 @@
-import { ChevronDown, Grid2X2, List, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { BookDetail, BookQuery } from "../types";
 import { BookCard } from "../components/BookCard";
 
-export function LibraryPage({books,query,onQuery,onOpen,view,onView,loading}:{books:BookDetail[];query:BookQuery;onQuery:(q:BookQuery)=>void;onOpen:(b:BookDetail)=>void;view:"grid"|"list";onView:(v:"grid"|"list")=>void;loading:boolean}){
+export function LibraryPage({books,query,onQuery,onOpen,view,loading}:{books:BookDetail[];query:BookQuery;onQuery:(q:BookQuery)=>void;onOpen:(b:BookDetail)=>void;view:"grid"|"list";loading:boolean}){
   const active=[query.status&&query.status!=="All",query.format&&query.format!=="All",query.minRating].filter(Boolean).length;
   return <div className="page library-page">
-    <section className="library-intro"><div><h2>{query.search?`Results for “${query.search}”`:"All books"}</h2><p>{books.length} {books.length===1?"book":"books"} in this view</p></div><div className="view-toggle"><button className={view==="grid"?"active":""} onClick={()=>onView("grid")} aria-label="Grid view"><Grid2X2 size={17}/></button><button className={view==="list"?"active":""} onClick={()=>onView("list")} aria-label="List view"><List size={18}/></button></div></section>
     <section className="filter-bar" aria-label="Library filters">
       <span className="filter-label"><SlidersHorizontal size={16}/> Filter{active?` · ${active}`:""}</span>
       <label>Status<select value={query.status||"All"} onChange={e=>onQuery({...query,status:e.target.value})}><option>All</option><option>Want to Read</option><option>Unread</option><option>Reading</option><option>Finished</option><option>Did Not Finish</option></select><ChevronDown size={14}/></label>

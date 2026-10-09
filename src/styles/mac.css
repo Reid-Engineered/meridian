@@ -1,0 +1,163 @@
+/*
+ * Meridian for Mac — visual foundation.
+ * Loaded after app.css. Re-points the existing tokens to the Mac palette (so every
+ * page adopts it) and defines the window shell: floating sidebar, unified toolbar
+ * and the book inspector. Design reference: the "Meridian for Mac" canvas.
+ */
+:root{
+  --font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable Text","Segoe UI","Helvetica Neue",sans-serif;
+  --serif:"New York",ui-serif,"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  font-family:var(--font-ui);
+  -webkit-font-smoothing:antialiased;
+  --bg:#FBFAF8; --sidebar:rgba(240,237,232,.86); --surface:#FFFFFF; --elevated:#FFFFFF;
+  --text:#1d1d1f; --muted:#5c5c61; --faint:#6e6e73;
+  --border:rgba(0,0,0,.10); --border-soft:rgba(0,0,0,.06);
+  --accent:#A65A2A; --accent-hover:#8E4B21; --accent-soft:rgba(166,90,42,.12); --accent-ink:#fff; --accent-text:#94491C;
+  --blue:#2F6FDB; --green:#2F8A57; --gold:#D8962A; --danger:#C4392B;
+  --fill:rgba(0,0,0,.035); --fill2:rgba(0,0,0,.075);
+  --glass:rgba(255,255,255,.76); --glass-border:rgba(0,0,0,.07);
+  --glass-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 1px 1px rgba(0,0,0,.04),0 6px 16px -8px rgba(0,0,0,.18);
+  --panel:rgba(255,255,255,.88); --float-shadow:0 10px 30px -12px rgba(0,0,0,.2);
+  --shadow:0 30px 80px -24px rgba(0,0,0,.4),0 0 0 .5px rgba(0,0,0,.12);
+  --radius:12px;
+  --status-want:#2F6FDB; --status-unread:#8E8E93; --status-reading:#C2692F; --status-finished:#2F8A57; --status-dnf:#C4392B;
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1E1B19; --sidebar:rgba(50,46,43,.88); --surface:#2A2724; --elevated:#302C29;
+  --text:#F5F5F7; --muted:rgba(235,235,245,.70); --faint:rgba(235,235,245,.56);
+  --border:rgba(255,255,255,.12); --border-soft:rgba(255,255,255,.08);
+  --accent:#E59A5C; --accent-hover:#F0AE75; --accent-soft:rgba(229,154,92,.16); --accent-ink:#1A0E08; --accent-text:#EBA46B;
+  --blue:#64A8FF; --green:#6FC79B; --gold:#F0B44C; --danger:#FF6B5B;
+  --fill:rgba(255,255,255,.05); --fill2:rgba(255,255,255,.11);
+  --glass:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+  --glass-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 20px -10px rgba(0,0,0,.6);
+  --panel:rgba(44,41,38,.92); --float-shadow:0 10px 30px -12px rgba(0,0,0,.6);
+  --shadow:0 30px 80px -20px rgba(0,0,0,.7),0 0 0 .5px rgba(255,255,255,.08);
+}
+kbd{font:11px var(--font-ui)}
+h1,h2,h3{letter-spacing:-.01em}
+
+/* ---------- Window shell ---------- */
+.mac-shell{position:relative;height:100vh;display:flex;background:var(--bg);color:var(--text)}
+.mac-content{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;margin-left:248px;transition:margin-right .2s ease}
+.mac-shell.has-inspector .mac-content{margin-right:316px}
+.mac-content>.page{padding-top:8px}
+
+/* Floating sidebar */
+.mac-sidebar{position:fixed;z-index:5;left:8px;top:8px;bottom:8px;width:232px;border-radius:16px;background:var(--sidebar);
+  border:1px solid var(--border-soft);box-shadow:var(--float-shadow);backdrop-filter:blur(30px) saturate(1.4);
+  display:flex;flex-direction:column;padding:10px 10px 12px;overflow-y:auto}
+.traffic-space{height:30px;flex:none}
+.mac-sidebar nav{display:flex;flex-direction:column;gap:1px}
+.sb-section{margin-top:14px}
+.sb-heading{margin:4px 10px 6px;font-size:11px;font-weight:600;color:var(--faint)}
+.sb-row{display:flex;align-items:center;gap:8px;height:28px;width:100%;padding:0 10px;border:0;border-radius:8px;background:transparent;
+  color:var(--text);font-size:13px;text-align:left;cursor:default}
+.sb-row svg{flex:none;color:var(--accent-text)}
+.sb-row.muted-icon svg{color:var(--faint)}
+.sb-row:hover{background:var(--fill)}
+.sb-row.active{background:var(--fill2);font-weight:600}
+.sb-row.active svg{color:var(--accent-text)}
+.sb-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-count{color:var(--faint);font-size:12px;font-weight:400;font-variant-numeric:tabular-nums}
+.sb-footer{margin-top:auto;padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.sb-now{display:flex;gap:10px;align-items:center;width:100%;padding:10px;border-radius:12px;background:var(--glass);
+  border:1px solid var(--border-soft);text-align:left;cursor:default}
+.sb-now-cover{width:34px;height:53px;flex:none;border-radius:2px 4px 4px 2px;overflow:hidden;background:var(--fill2);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.sb-now-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.sb-now-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sb-now-copy strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-now-copy small{font-size:11px;color:var(--muted)}
+.meter{display:block;height:4px;border-radius:2px;background:var(--fill2);overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;border-radius:2px;background:var(--accent)}
+
+/* Unified toolbar */
+.mac-toolbar{height:64px;min-height:64px;display:flex;align-items:center;gap:12px;padding:0 20px 0 22px}
+.tb-title{min-width:0}
+.tb-title h1{margin:0;font:700 15px/1.2 var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-title p{margin:1px 0 0;font-size:11px;color:var(--faint);white-space:nowrap}
+.tb-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.glass{background:var(--glass);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow)}
+.seg{display:inline-flex;height:34px;border-radius:17px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:14px;min-width:36px;padding:0 10px;display:grid;place-items:center;color:var(--muted);cursor:default}
+.seg button.on{background:var(--fill2);color:var(--text)}
+.mac-toolbar .global-search{height:34px;width:220px;border-radius:17px;display:flex;align-items:center;gap:7px;padding:0 12px;color:var(--faint);margin:0;min-width:0}
+.mac-toolbar .global-search input{border:0;background:transparent;outline:none;width:100%;min-width:0;color:var(--text);font-size:13px;padding:0}
+.mac-toolbar .global-search:focus-within{box-shadow:0 0 0 3.5px color-mix(in srgb,var(--accent) 35%,transparent),var(--glass-shadow)}
+.mac-toolbar .global-search kbd{flex:none}
+.add-round{width:34px;height:34px;border-radius:17px;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;
+  box-shadow:0 4px 12px -4px rgba(120,50,10,.5),inset 0 1px 0 rgba(255,255,255,.25);cursor:default}
+.add-round:hover{background:var(--accent-hover)}
+.round{width:30px;height:30px;border-radius:15px;display:grid;place-items:center;padding:0;color:var(--muted);cursor:default}
+
+/* Book inspector */
+.mac-inspector{position:fixed;z-index:6;right:8px;top:8px;bottom:8px;width:300px;border-radius:16px;background:var(--panel);
+  border:1px solid var(--border-soft);box-shadow:var(--float-shadow);backdrop-filter:blur(30px);padding:30px 22px 26px;overflow-y:auto;
+  animation:insp-in .18s ease}
+@keyframes insp-in{from{opacity:0;transform:translateX(12px)}}
+.insp-close{position:absolute;top:12px;right:12px}
+.insp-cover{width:132px;aspect-ratio:2/3;margin:6px auto 20px;border-radius:3px 6px 6px 3px;overflow:hidden;background:var(--fill2);
+  box-shadow:0 2px 4px rgba(0,0,0,.12),0 24px 40px -14px rgba(90,40,10,.5)}
+.insp-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.insp-head{text-align:center}
+.insp-head h2{margin:0;font:600 22px/1.15 var(--serif)}
+.insp-sub{margin:4px 0 0;font-size:12px;color:var(--muted)}
+.insp-authors{margin:6px 0 0;font-size:13px;font-weight:500;color:var(--accent-text)}
+.insp-head .stars{display:inline-block;margin-top:8px}
+.insp-progress{margin-top:18px}
+.insp-progress>div{display:flex;align-items:baseline;justify-content:space-between;font-size:12px;color:var(--muted)}
+.insp-progress strong{font-size:20px;font-weight:300;color:var(--text)}
+.insp-actions{display:flex;gap:8px;margin-top:18px}
+.insp-actions .btn{flex:1}
+.insp-status{display:flex;align-items:center;gap:7px;margin:16px 0 8px;font-size:12px;color:var(--muted)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--status-unread);flex:none}
+.status-dot.s-want-to-read{background:var(--status-want)}.status-dot.s-reading{background:var(--status-reading)}
+.status-dot.s-finished{background:var(--status-finished)}.status-dot.s-did-not-finish{background:var(--status-dnf)}
+.insp-group{margin:0;border-radius:12px;background:var(--fill);font-size:12px}
+.insp-group div{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border-bottom:1px solid var(--border-soft)}
+.insp-group div:last-child{border-bottom:0}
+.insp-group dt{color:var(--muted)}
+.insp-group dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.insp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.insp-tags span{font-size:11px;font-weight:500;padding:4px 10px;border-radius:11px;background:var(--fill2)}
+.insp-text h3{margin:18px 0 6px;font-size:11px;font-weight:600;color:var(--faint)}
+.insp-text p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.serif-note{font-family:var(--serif);font-style:italic;font-size:14px}
+
+/* Capsule buttons (new) and restyle of existing .button */
+.btn,.button{height:32px;border-radius:16px;padding:0 15px;border:1px solid transparent;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;cursor:default}
+.btn.primary,.button.primary{background:var(--accent);color:var(--accent-ink);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.btn.primary:hover,.button.primary:hover{background:var(--accent-hover)}
+.btn.secondary,.button.secondary{background:var(--glass);border-color:var(--glass-border);box-shadow:var(--glass-shadow);color:var(--text)}
+.button.danger{background:#D33A2C;color:#fff;font-weight:600}
+.button.danger-quiet{background:transparent;color:var(--danger)}
+
+/* Dialogs, toasts and covers pick up the new depth */
+.modal-backdrop{background:rgba(30,22,16,.30);backdrop-filter:blur(10px)}
+[data-theme="dark"] .modal-backdrop{background:rgba(0,0,0,.45)}
+.confirm-dialog,.book-form,.small-modal,.collection-drawer{border-radius:24px;box-shadow:var(--shadow);border:1px solid var(--glass-border)}
+.toast{background:rgba(36,32,29,.92);color:#fff;font-weight:500;padding:10px 18px;backdrop-filter:blur(20px);box-shadow:0 12px 30px -10px rgba(0,0,0,.5)}
+.cover-wrap{border-radius:3px 5px 5px 3px}
+.status{border-radius:10px}
+
+/* ---------- Narrow windows ---------- */
+@media (max-width:1100px){
+  .mac-shell.has-inspector .mac-content{margin-right:0}
+  .mac-inspector{box-shadow:var(--shadow)}
+}
+@media (max-width:760px){
+  body{overflow:auto}
+  .mac-shell{display:block;height:auto}
+  .mac-content{margin-left:0;height:auto;min-height:100vh;padding-bottom:72px}
+  .mac-sidebar{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:58px;flex-direction:row;padding:5px;overflow-x:auto;overflow-y:hidden}
+  .mac-sidebar .traffic-space,.mac-sidebar .sb-section,.sb-now,.sb-count{display:none}
+  .mac-sidebar nav{flex-direction:row;flex:1}
+  .sb-footer{margin:0;padding:0}
+  .sb-row{flex-direction:column;justify-content:center;height:46px;gap:2px;font-size:10px;padding:0 8px;width:auto}
+  .sb-label{overflow:visible}
+  .mac-toolbar{height:auto;min-height:64px;flex-wrap:wrap;padding:12px 16px;gap:10px}
+  .tb-actions{margin-left:0;width:100%}
+  .mac-toolbar .global-search{flex:1;width:auto}
+  .mac-inspector{left:8px;width:auto;bottom:74px}
+}

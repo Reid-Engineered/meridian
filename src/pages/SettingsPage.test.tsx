@@ -8,7 +8,7 @@ beforeEach(()=>{Object.defineProperty(window,'__TAURI_INTERNALS__',{value:{},con
 afterEach(()=>{cleanup();vi.restoreAllMocks();delete (window as unknown as Record<string,unknown>).__TAURI_INTERNALS__;});
 const summary={books:12,collections:3,readingRecords:18};
 const selection={path:'C:/isolated/library.zip',name:'library.zip',digest:'abc',summary,coverFiles:2,coverBytes:50000,externalCovers:0};
-function setup(){const refresh=vi.fn().mockResolvedValue(undefined);const view=render(<SettingsPage dark={false} onTheme={()=>{}} info={null} onExport={vi.fn()} onReset={()=>{}} onRestored={refresh}/>);return {...view,refresh};}
+function setup(){const refresh=vi.fn().mockResolvedValue(undefined);const view=render(<SettingsPage theme="system" onTheme={()=>{}} info={null} onExport={vi.fn()} onReset={()=>{}} onRestored={refresh}/>);return {...view,refresh};}
 function choose(_container:HTMLElement){fireEvent.click(screen.getByRole('button',{name:'Choose file'}));}
 it('validates and summarizes before replacement, with cancellation preserving the library',async()=>{
   vi.spyOn(libraryService,'chooseBackup').mockResolvedValue(selection);const restore=vi.spyOn(libraryService,'restoreBackupFile');
