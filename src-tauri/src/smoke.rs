@@ -16,7 +16,7 @@ pub fn configuration() -> AppResult<SmokeState> {
     let stage = args.iter().position(|arg| arg == "--smoke-test-stage")
         .and_then(|index| args.get(index + 1)).ok_or(AppError::Storage)?.clone();
     let directory = PathBuf::from(directory);
-    if !directory.is_absolute() || !matches!(stage.as_str(), "initial" | "reopen" | "scaled" | "cleanup") {
+    if !directory.is_absolute() || !matches!(stage.as_str(), "initial" | "reopen" | "scaled" | "cleanup" | "visual") {
         return Err(AppError::Storage);
     }
     let directory = directory.canonicalize()?;
@@ -33,11 +33,12 @@ pub fn configuration() -> AppResult<SmokeState> {
 }
 
 #[tauri::command]
-pub fn smoke_context(state: tauri::State<SmokeState>) -> AppResult<serde_json::Value> {
+pub fn smoke_context(state: tauri::State<SmokeState>,window:tauri::WebviewWindow,restore_window:Option<bool>) -> AppResult<serde_json::Value> {
+    if restore_window==Some(true){window.unminimize().map_err(|_|AppError::Storage)?;}
     let expected = if state.stage != "initial" {
         Some(serde_json::from_slice::<serde_json::Value>(&std::fs::read(state.directory.join("initial.json"))?)?)
     } else { None };
-    Ok(serde_json::json!({"stage":state.stage, "expected":expected,"coverSource":state.directory.join("smoke-source.png").display().to_string()}))
+    Ok(serde_json::json!({"stage":state.stage, "expected":expected,"coverSource":state.directory.join("smoke-source.png").display().to_string(),"window":{"decorated":window.is_decorated().map_err(|_|AppError::Storage)?,"resizable":window.is_resizable().map_err(|_|AppError::Storage)?,"maximized":window.is_maximized().map_err(|_|AppError::Storage)?,"minimized":window.is_minimized().map_err(|_|AppError::Storage)?}}))
 }
 
 #[tauri::command]
@@ -52,6 +53,7 @@ pub fn smoke_finish(app: tauri::AppHandle, state: tauri::State<SmokeState>, repo
 pub fn start<R: Runtime>(webview: &tauri::Webview<R>, payload: &tauri::webview::PageLoadPayload<'_>) {
     if payload.event() != tauri::webview::PageLoadEvent::Finished { return; }
     let state = webview.state::<SmokeState>();
+    if state.stage=="visual" {if let Some(window)=webview.app_handle().get_webview_window("main"){let _=window.show();}return;}
     if state.started.swap(true, Ordering::SeqCst) { return; }
     if state.stage == "scaled" {
         if let Err(error) = webview.set_zoom(2.0) {

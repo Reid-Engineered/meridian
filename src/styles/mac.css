@@ -323,3 +323,26 @@ h1,h2,h3{letter-spacing:-.01em}
   /* app.css still positions the old top-bar search absolutely on phones */
   .mac-toolbar .global-search{position:static;left:auto;right:auto;top:auto;bottom:auto;width:100%}
 }
+
+/* Native Windows caption: the same ground as the app, with conventional Windows controls. */
+.window-chrome{position:fixed;inset:0 0 auto;height:32px;z-index:100;display:flex;align-items:center;justify-content:space-between;background:var(--bg);color:var(--text);user-select:none}
+.window-brand{display:flex;align-items:center;gap:8px;padding-left:12px;height:100%;font-size:12px;color:var(--muted)}
+.window-brand img{width:16px;height:16px;pointer-events:none}
+.window-controls{display:flex;height:100%}
+.window-controls button{display:grid;place-items:center;width:46px;height:32px;padding:0;border:0;border-radius:0;background:transparent;color:inherit;cursor:default}
+.window-controls svg{fill:none;stroke:currentColor;stroke-width:1;pointer-events:none}
+.window-controls button:hover{background:var(--fill2)}
+.window-controls button:focus-visible{outline:2px solid var(--accent-text);outline-offset:-3px}
+.window-controls .window-close:hover{background:#c42b1c;color:#fff}
+.window-error{position:absolute;right:8px;top:32px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;box-shadow:var(--shadow)}
+.windows-shell{margin-top:32px;height:calc(100vh - 32px)}
+.windows-shell .mac-content{height:calc(100vh - 32px)}
+.windows-shell .mac-sidebar,.windows-shell .mac-inspector{top:40px}
+.windows-shell .traffic-space{height:8px}
+.windows-shell .modal-backdrop{top:32px}
+@media(max-width:760px){
+  .windows-shell{height:auto}
+  .windows-shell .mac-content{height:auto;min-height:calc(100vh - 32px)}
+  .windows-shell .mac-sidebar,.windows-shell .mac-inspector{top:auto}
+  .windows-shell .mac-toolbar{top:32px}
+}

@@ -1,5 +1,7 @@
 # Architecture and command boundary
 
+Windows caption operations use a separate `src/services/window.ts` adapter and theme-integrated `WindowChrome`; Windows startup removes system decorations before creating the window. Other platforms retain native decorations. See `WINDOWS-CHROME.md` for behavior and verification.
+
 Meridian is a local desktop catalog. React renders application state and calls `libraryService`; the native path uses Tauri IPC handlers, Rust services, and SQLite repositories. Browser preview is a separate local-storage simulation, not evidence of native persistence or parity.
 
 ```mermaid
