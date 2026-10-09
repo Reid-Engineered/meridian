@@ -74,7 +74,7 @@ h1,h2,h3{letter-spacing:-.01em}
 
 /* Unified toolbar */
 .mac-toolbar{height:64px;min-height:64px;display:flex;align-items:center;gap:12px;padding:0 20px 0 22px}
-.tb-title{min-width:0}
+.tb-title{flex:1 1 auto;min-width:72px}
 .tb-title h1{margin:0;font:700 15px/1.2 var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tb-title p{margin:1px 0 0;font-size:11px;color:var(--faint);white-space:nowrap}
 .tb-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
@@ -142,10 +142,7 @@ h1,h2,h3{letter-spacing:-.01em}
 .status{border-radius:10px}
 
 /* ---------- Narrow windows ---------- */
-@media (max-width:1100px){
-  .mac-shell.has-inspector .mac-content{margin-right:0}
-  .mac-inspector{box-shadow:var(--shadow)}
-}
+/* The inspector always makes room (down to the 980px minimum window); the toolbar adapts to what is left. */
 @media (max-width:760px){
   body{overflow:auto}
   .mac-shell{display:block;height:auto}
@@ -159,10 +156,12 @@ h1,h2,h3{letter-spacing:-.01em}
   .sb-footer{margin:0;padding:0}
   .sb-row{flex-direction:column;justify-content:center;height:46px;gap:2px;font-size:10px;padding:0 8px;width:auto}
   .sb-label{overflow:visible}
-  .mac-toolbar{height:auto;min-height:64px;flex-wrap:wrap;padding:12px 16px;gap:10px}
-  .tb-actions{margin-left:0;width:100%}
-  .mac-toolbar .global-search{flex:1;width:auto}
-  .mac-inspector{left:8px;width:auto;bottom:74px}
+  .mac-toolbar{height:auto;min-height:64px;flex-wrap:nowrap;padding:12px 16px;gap:10px;position:sticky;top:0;z-index:4;background:var(--bg)}
+  .tb-actions{margin-left:auto;flex:1 1 auto;justify-content:flex-end}
+  .tb-actions>.search-anchor{flex:1 1 auto}
+  .mac-toolbar .search-anchor .global-search{width:100%}
+  /* Bottom panel: the toolbar above stays visible and usable */
+  .mac-inspector{left:8px;width:auto;top:auto;bottom:74px;height:min(62vh,560px,calc(100vh - 160px))}
 }
 
 /* ---------- Step 2: menus, popovers, library ---------- */
@@ -299,4 +298,28 @@ h1,h2,h3{letter-spacing:-.01em}
   .mac-popover{position:fixed;left:8px;right:8px;width:auto;top:auto;bottom:74px}
   .lib-continue{grid-template-columns:1fr}
   .lib-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:20px 16px}
+}
+
+/* Toolbar fits whatever width the content column has (inspector open, narrow window, 200% zoom) */
+.mac-toolbar{container-type:inline-size;container-name:toolbar}
+.tb-actions{flex:0 1 auto;min-width:0}
+.tb-actions>*{flex:none}
+.tb-actions>.search-anchor{flex:0 1 220px;min-width:96px}
+.search-anchor .global-search{width:100%}
+.cap-count{display:none}
+@container toolbar (max-width:760px){
+  .capsule{padding:0 10px;position:relative}
+  .capsule .cap-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .capsule .cap-count{display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:700}
+  .mac-toolbar .global-search kbd{display:none}
+}
+@container toolbar (max-width:520px){
+  .tb-actions{gap:6px}
+  .mac-toolbar .seg button{min-width:30px;padding:0 6px}
+}
+@media (max-width:760px){
+  .tb-actions{flex:1 1 auto;justify-content:flex-end}
+  .tb-actions>.search-anchor{flex:1 1 140px;min-width:96px;max-width:320px}
+  /* app.css still positions the old top-bar search absolutely on phones */
+  .mac-toolbar .global-search{position:static;left:auto;right:auto;top:auto;bottom:auto;width:100%}
 }

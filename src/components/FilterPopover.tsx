@@ -22,7 +22,7 @@ export function FilterPopover({ query, onQuery, collections, shown, total }: { q
   return <div className="menu-anchor">
     <button ref={trigger} type="button" className={`glass capsule${count ? " is-active" : ""}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined}
       onClick={() => setOpen(o => !o)}>
-      <SlidersHorizontal size={14} aria-hidden="true" />{count ? `Filter · ${count}` : "Filter"}
+      <SlidersHorizontal size={14} aria-hidden="true" /><span className="cap-label">{count ? `Filter · ${count}` : "Filter"}</span>{count > 0 && <span className="cap-count" aria-hidden="true">{count}</span>}
     </button>
     {open && <div ref={pop} id={id} role="dialog" aria-label="Filter books" className="mac-popover filter-pop">
       <div className="pop-head"><h2>Filter</h2>

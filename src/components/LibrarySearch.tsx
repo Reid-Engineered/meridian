@@ -33,7 +33,7 @@ export function LibrarySearch({ value, onChange, books, onOpenBook }: { value: s
   };
   const optionId = (i: number) => `${id}-opt-${i}`;
   const firstAuthor = suggestions.findIndex(s => s.kind === "author");
-  return <div className="menu-anchor">
+  return <div className="menu-anchor search-anchor">
     <label ref={box} className="glass global-search">
       <Search size={14} aria-hidden="true" />
       <input value={value} placeholder="Search" aria-label="Search your library" role="combobox" aria-autocomplete="list"

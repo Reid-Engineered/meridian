@@ -20,9 +20,16 @@ export function useDismiss(open: boolean, close: () => void, popup: RefObject<HT
       e.preventDefault(); e.stopPropagation();
       closeRef.current(); trigger.current?.focus();
     };
+    // Tab / Shift+Tab (or a click) that moves focus outside both the popup and its trigger dismisses it,
+    // so a stale popup never keeps Escape away from the layer the person is actually in.
+    const onFocus = (e: FocusEvent) => {
+      const t = e.target as Node;
+      if (!popup.current?.contains(t) && !trigger.current?.contains(t)) closeRef.current();
+    };
     document.addEventListener("mousedown", onPointer);
     document.addEventListener("keydown", onKey, true);
-    return () => { document.removeEventListener("mousedown", onPointer); document.removeEventListener("keydown", onKey, true); };
+    document.addEventListener("focusin", onFocus);
+    return () => { document.removeEventListener("mousedown", onPointer); document.removeEventListener("keydown", onKey, true); document.removeEventListener("focusin", onFocus); };
   }, [open, popup, trigger]);
 }
 
@@ -46,7 +53,7 @@ export function MenuButton<T extends string>({ label, icon, menuLabel, groups, a
   return <div className="menu-anchor">
     <button ref={trigger} type="button" className="glass capsule" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
       onClick={() => setOpen(o => !o)} onKeyDown={e => { if (e.key === "ArrowDown" && !open) { e.preventDefault(); setOpen(true); } }}>
-      {icon}{label}
+      {icon}<span className="cap-label">{label}</span>
     </button>
     {open && <div ref={menu} id={id} role="menu" aria-label={menuLabel} className={`mac-menu align-${align}`} onKeyDown={onMenuKey}>
       {groups.map((g, gi) => <div key={gi} role="group" aria-label={g.label}>

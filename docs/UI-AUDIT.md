@@ -68,4 +68,11 @@ Still to come: library grid/list rebuild with filter popover and sort menu (step
 - **Continue Reading.** On the unfiltered library, up to two books in progress appear above the grid, most recently started first.
 - **Empty states.** A first launch shows "Your shelves are waiting" with Add Book. A search or filter with no matches names the search and offers Clear Filters and Add a Book.
 
-Verified: frontend tests 29/29 (7 new: filter popover with chips and Escape focus return, sort menu keyboard and direction, search suggestions, list view, no-results, empty library, preview sort parity) and the new Rust sort test. The browser preview was checked at 1440×900 with each menu open, in light and dark. Not done in this step: shelf (location) scopes, the form's pop-up menus (step 3), and native menu-bar and context menus (step 5).
+Review follow-up (PR #2):
+- **Focus leaving a popup.** Popups and suggestion lists now close when focus leaves both the popup and its trigger (Tab, Shift+Tab or a click), so a stale popup never takes Escape from the inspector.
+- **Toolbar width.** The toolbar is a CSS container and adapts to the space it has. Below 760px of toolbar width, the Filter and Sort capsules show only their icons, Filter adds a count badge, and their names stay available to screen readers. Search shrinks to a 96px minimum, and the title keeps at least 72px.
+- **Inspector.** It now always reserves its column on desktop: the old 1100px overlay breakpoint is removed. Below 760px it becomes a bottom panel under a sticky toolbar.
+- **Legacy CSS.** An old `app.css` phone rule that pulled the search field out of the toolbar is overridden.
+- **Measured.** With Dune open, a browser hit test showed every toolbar control reachable and the title kept at 980×700, 1120×800, 1200×800, 1440×900 and 1440×900 at 200% zoom. Real Tab-then-Escape input closes the filter first, then the inspector.
+
+Verified: frontend tests 31/31 (9 new: filter popover with chips and Escape focus return, sort menu keyboard and direction, search suggestions, list view, no-results, empty library, preview sort parity) and the new Rust sort test. The browser preview was checked at 1440×900 with each menu open, in light and dark. Not done in this step: shelf (location) scopes, the form's pop-up menus (step 3), and native menu-bar and context menus (step 5).

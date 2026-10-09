@@ -37,6 +37,35 @@ describe('library toolbar', () => {
     await waitFor(() => expect(screen.queryByRole('group', { name: 'Active filters' })).toBeNull());
   });
 
+  it('dismisses the filter popover and suggestions when focus leaves them, so Escape reaches the right layer', async () => {
+    await start();
+    fireEvent.click(screen.getByRole('button', { name: 'Open Dune' }));
+    expect(screen.getByRole('complementary', { name: 'Dune details' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
+    const status = within(screen.getByRole('dialog', { name: 'Filter books' })).getByLabelText('Status');
+    status.focus();
+    const sort = screen.getByRole('button', { name: /Recently Added/ });
+    sort.focus();
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Filter books' })).toBeNull());
+    expect(screen.getByRole('complementary', { name: 'Dune details' })).toBeTruthy();
+    fireEvent.keyDown(sort, { key: 'Escape' });
+    expect(screen.queryByRole('complementary', { name: 'Dune details' })).toBeNull();
+
+    const input = screen.getByRole('combobox', { name: 'Search your library' });
+    input.focus(); fireEvent.change(input, { target: { value: 'le gu' } });
+    expect(await screen.findByRole('listbox', { name: 'Suggestions' })).toBeTruthy();
+    screen.getByRole('button', { name: 'Filter' }).focus();
+    await waitFor(() => expect(screen.queryByRole('listbox', { name: 'Suggestions' })).toBeNull());
+  });
+
+  it('closes the sort menu when focus moves back past its trigger', async () => {
+    await start();
+    fireEvent.click(screen.getByRole('button', { name: /Recently Added/ }));
+    expect(screen.getByRole('menu', { name: 'Sort books' })).toBeTruthy();
+    screen.getByRole('button', { name: 'Filter' }).focus();
+    await waitFor(() => expect(screen.queryByRole('menu', { name: 'Sort books' })).toBeNull());
+  });
+
   it('sorts by field and direction from the sort menu with keyboard support', async () => {
     await start();
     const trigger = screen.getByRole('button', { name: /Recently Added/ });
