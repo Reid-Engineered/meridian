@@ -1,0 +1,115 @@
+name: Linux and macOS release packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to build and attach packages to
+        required: true
+        default: v0.1.0
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unix-release-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            platform: linux-x64
+          - runner: macos-15
+            platform: macos-arm64
+          - runner: macos-15-intel
+            platform: macos-x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      PACKAGE_PLATFORM: ${{ matrix.platform }}
+      GH_TOKEN: ${{ github.token }}
+      APPIMAGE_EXTRACT_AND_RUN: '1'
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+          persist-credentials: false
+      - name: Check existing release and source version
+        run: |
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+          node --input-type=module -e 'import fs from "node:fs"; const version=JSON.parse(fs.readFileSync("src-tauri/tauri.conf.json")).version; if(process.env.RELEASE_TAG!==`v${version}`) throw new Error("Release tag must match application version");'
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2 file xdg-utils
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri -> target
+            src-tauri/core-tests -> target
+      - run: npm ci
+      - name: Configure ad-hoc macOS signing
+        if: runner.os == 'macOS'
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('src-tauri/tauri.conf.json')
+          config = json.loads(path.read_text())
+          config['bundle']['macOS'] = {'signingIdentity': '-', 'minimumSystemVersion': '11.0'}
+          path.write_text(json.dumps(config, indent=2) + '\n')
+          PY
+      - name: Full tests, isolated database fixtures and native packages
+        run: npm run verify
+      - name: Stage packages and verification evidence
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, shutil, subprocess
+          from pathlib import Path
+          platform = os.environ['PACKAGE_PLATFORM']
+          tag = os.environ['RELEASE_TAG']
+          source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          verification = json.loads(Path('verification/latest.json').read_text())
+          assert verification['mode'] == 'full' and all(item['passed'] for item in verification['results'])
+          bundle = Path('src-tauri/target/release/bundle')
+          output = Path('release-assets')
+          output.mkdir()
+          extensions = ['.deb', '.rpm', '.AppImage'] if platform.startswith('linux') else ['.dmg']
+          for extension in extensions:
+              files = list(bundle.rglob('*' + extension))
+              assert len(files) == 1, f'Expected one {extension} package, found {files}'
+              shutil.copy2(files[0], output / f'Meridian-{tag}-{platform}{extension}')
+          if platform.startswith('macos'):
+              app = bundle / 'macos/Meridian.app'
+              subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
+              subprocess.run(['tar', '-czf', str(output / f'Meridian-{tag}-{platform}.app.tar.gz'), '-C', str(app.parent), app.name], check=True)
+          artifacts = [{'name': item.name, 'bytes': item.stat().st_size, 'sha256': hashlib.sha256(item.read_bytes()).hexdigest()} for item in sorted(output.iterdir())]
+          prefix = f'Meridian-{tag}-{platform}'
+          (output / f'{prefix}-verification.json').write_text(json.dumps(verification, indent=2) + '\n')
+          (output / f'{prefix}-provenance.json').write_text(json.dumps({'commit': source, 'tag': tag, 'platform': platform, 'run': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}", 'macOSSigning': 'ad-hoc, not notarized' if platform.startswith('macos') else None, 'installedAppAcceptance': 'not run', 'artifacts': artifacts}, indent=2) + '\n')
+          (output / f'{prefix}-SHA256SUMS.txt').write_text(''.join(f"{item['sha256']}  {item['name']}\n" for item in artifacts))
+          PY
+      - name: Preserve verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ matrix.platform }}
+          path: verification/latest.json
+          if-no-files-found: ignore
+      - name: Upload verified packages to existing release
+        run: gh release upload "$RELEASE_TAG" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
