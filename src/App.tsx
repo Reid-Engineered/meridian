@@ -4,7 +4,7 @@ import { BookInspector } from "./components/BookInspector";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { Sidebar, type Page, type Scope } from "./components/Sidebar";
 import { Toolbar } from "./components/Toolbar";
-import { LibraryPage } from "./pages/LibraryPage";
+import { LibraryPage, LibraryToolbarActions } from "./pages/LibraryPage";
 import { CollectionsPage } from "./pages/CollectionsPage";
 import { ReadingPage } from "./pages/ReadingPage";
 import { StatisticsPage } from "./pages/StatisticsPage";
@@ -44,13 +44,14 @@ export default function App(){
   const libraryTitle=scope.kind==="collection"?collections.find(c=>c.id===scope.id)?.name??"Collection":scope.kind==="status"?scope.status:"All Books";
   const head=page==="library"?{title:libraryTitle,subtitle:loading?"":query.search?`${plural(books.length)} matching “${query.search}”`:plural(books.length)}:pageTitles[page];
 
-  const content=page==="library"?<LibraryPage books={books} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
+  const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
   return <div className={`mac-shell${selected?" has-inspector":""}`}>
     <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected}/>
     <main className="mac-content">
-      <Toolbar title={head.title} subtitle={head.subtitle} onAdd={openAdd}
-        search={page==="library"?{value:query.search||"",onChange:s=>setQuery(q=>({...q,search:s}))}:undefined}
-        view={page==="library"?{value:view,onChange:v=>{setView(v);localStorage.setItem("meridian-view",v)}}:undefined}/>
+      <Toolbar title={head.title} subtitle={head.subtitle} onAdd={openAdd}>
+        {page==="library"&&allBooks.length>0&&<LibraryToolbarActions query={query} onQuery={setQuery} view={view} onView={v=>{setView(v);try{localStorage.setItem("meridian-view",v)}catch{/* view stays in memory */}}}
+          collections={collections} shown={books.length} total={allBooks.length} allBooks={allBooks} onOpen={setSelected}/>}
+      </Toolbar>
       {content}
     </main>
     {selected&&<BookInspector key={selected.id} book={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null);setFormOpen(true)}} onDelete={()=>setConfirmDelete(selected)}/>} {formOpen&&<BookForm book={editing} collections={collections} onSave={saveBook} onClose={()=>{setFormOpen(false);setEditing(undefined)}}/>}

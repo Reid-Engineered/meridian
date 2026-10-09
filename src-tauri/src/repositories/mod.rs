@@ -37,11 +37,21 @@ impl LibraryRepository {
     let mut st=conn.prepare("SELECT collection_id FROM collection_copies WHERE copy_id=?1")?;b.collection_ids=st.query_map([id],|r|r.get(0))?.collect::<Result<Vec<i64>,_>>()?;Ok(b)
   }
   fn strings(conn:&Connection,sql:&str,id:i64)->AppResult<Vec<String>>{let mut st=conn.prepare(sql)?;let rows=st.query_map([id],|r|r.get(0))?.collect::<Result<Vec<String>,_>>()?;Ok(rows)}
+  /// `<field>_<asc|desc>` for title, author, publication_year, rating or date_added; anything else is date_added_desc.
+  /// Only whitelisted SQL fragments are produced. Missing years, ratings and authors sort last in either direction.
+  pub fn order_by(sort:Option<&str>)->String{
+    let (field,dir)=sort.and_then(|s|s.rsplit_once('_')).filter(|(_,d)|*d=="asc"||*d=="desc").unwrap_or(("date_added","desc"));
+    let dir=if dir=="asc"{"ASC"}else{"DESC"};
+    let (expr,nullable)=match field{"title"=>("w.title COLLATE NOCASE",false),"author"=>("a.name COLLATE NOCASE",true),"publication_year"=>("w.original_publication_year",true),"rating"=>("r.rating",true),"date_added"=>("c.date_added",false),_=>return " ORDER BY c.date_added DESC,c.id DESC".into()};
+    let nulls=if nullable{format!("{expr} IS NULL,")}else{String::new()};
+    let tie=if field=="date_added"{format!("c.id {dir}")}else{"w.title COLLATE NOCASE,c.id".into()};
+    format!(" ORDER BY {nulls}{expr} {dir},{tie}")
+  }
   pub fn list(conn:&Connection,q:&BookQuery)->AppResult<Vec<BookDetail>>{
     let mut sql=String::from("SELECT DISTINCT c.id FROM library_copies c JOIN editions e ON e.id=c.edition_id JOIN works w ON w.id=e.work_id LEFT JOIN reading_records r ON r.id=(SELECT id FROM reading_records WHERE copy_id=c.id ORDER BY id DESC LIMIT 1) LEFT JOIN work_authors wa ON wa.work_id=w.id LEFT JOIN authors a ON a.id=wa.author_id LEFT JOIN copy_tags ct ON ct.copy_id=c.id LEFT JOIN tags t ON t.id=ct.tag_id LEFT JOIN collection_copies cc ON cc.copy_id=c.id WHERE 1=1");let mut values:Vec<Value>=vec![];
     if let Some(s)=q.search.as_ref().map(|s|s.trim()).filter(|s|!s.is_empty()){sql.push_str(" AND (w.title LIKE ? OR w.subtitle LIKE ? OR a.name LIKE ? OR e.isbn10 LIKE ? OR e.isbn13 LIKE ? OR w.series LIKE ? OR t.name LIKE ?)");let p=Value::Text(format!("%{s}%"));for _ in 0..7{values.push(p.clone())}}
     if let Some(s)=q.status.as_ref().filter(|s|*s!="All"){sql.push_str(" AND r.status=?");values.push(Value::Text(s.clone()))}if let Some(s)=q.format.as_ref().filter(|s|*s!="All"){sql.push_str(" AND e.format=?");values.push(Value::Text(s.clone()))}if let Some(n)=q.min_rating{sql.push_str(" AND r.rating>=?");values.push(Value::Integer(n as i64))}if let Some(id)=q.collection_id{sql.push_str(" AND cc.collection_id=?");values.push(Value::Integer(id))}
-    sql.push_str(match q.sort.as_deref(){Some("title_asc")=>" ORDER BY w.title COLLATE NOCASE",Some("author_asc")=>" ORDER BY a.name COLLATE NOCASE",Some("publication_year_desc")=>" ORDER BY w.original_publication_year DESC",Some("rating_desc")=>" ORDER BY r.rating DESC",_=>" ORDER BY c.date_added DESC,c.id DESC"});
+    sql.push_str(&Self::order_by(q.sort.as_deref()));
     let mut st=conn.prepare(&sql)?;let ids=st.query_map(params_from_iter(values),|r|r.get(0))?.collect::<Result<Vec<i64>,_>>()?;ids.into_iter().map(|id|Self::get(conn,id)).collect()
   }
   pub fn collections(conn:&Connection)->AppResult<Vec<Collection>>{let mut st=conn.prepare("SELECT c.id,c.name,c.description,count(cc.copy_id) FROM collections c LEFT JOIN collection_copies cc ON cc.collection_id=c.id GROUP BY c.id ORDER BY c.name")?;let rows=st.query_map([],|r|Ok(Collection{id:r.get(0)?,name:r.get(1)?,description:r.get(2)?,book_count:r.get(3)?,covers:vec![]}))?.collect::<Result<Vec<_>,_>>()?;Ok(rows)}
