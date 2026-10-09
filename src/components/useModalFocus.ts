@@ -18,7 +18,7 @@ function isolateTopLayer() {
   let branch: HTMLElement | undefined = layers[layers.length - 1]?.root;
   while (branch?.parentElement) {
     for (const sibling of Array.from(branch.parentElement.children)) {
-      if (sibling !== branch && sibling instanceof HTMLElement && !['SCRIPT', 'STYLE'].includes(sibling.tagName)) {
+      if (sibling !== branch && sibling instanceof HTMLElement && !sibling.hasAttribute('data-window-chrome') && !['SCRIPT', 'STYLE'].includes(sibling.tagName)) {
         originalInert.set(sibling, sibling.inert);
         sibling.inert = true;
       }

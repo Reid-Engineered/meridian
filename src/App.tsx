@@ -4,6 +4,8 @@ import { BookInspector } from "./components/BookInspector";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { Sidebar, type Page, type Scope } from "./components/Sidebar";
 import { Toolbar } from "./components/Toolbar";
+import { WindowChrome } from "./components/WindowChrome";
+import { windowService } from "./services/window";
 import { LibraryPage, LibraryToolbarActions } from "./pages/LibraryPage";
 import { CollectionsPage } from "./pages/CollectionsPage";
 import { ReadingPage } from "./pages/ReadingPage";
@@ -45,7 +47,7 @@ export default function App(){
   const head=page==="library"?{title:libraryTitle,subtitle:loading?"":query.search?`${plural(books.length)} matching “${query.search}”`:plural(books.length)}:pageTitles[page];
 
   const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
-  return <div className={`mac-shell${selected?" has-inspector":""}`}>
+  return <><WindowChrome /><div className={`mac-shell${selected?" has-inspector":""}${windowService.hasCustomChrome()?" windows-shell":""}`}>
     <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected}/>
     <main className="mac-content">
       <Toolbar title={head.title} subtitle={head.subtitle} onAdd={openAdd}>
@@ -56,5 +58,5 @@ export default function App(){
     </main>
     {selected&&<BookInspector key={selected.id} book={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null);setFormOpen(true)}} onDelete={()=>setConfirmDelete(selected)}/>} {formOpen&&<BookForm book={editing} collections={collections} onSave={saveBook} onClose={()=>{setFormOpen(false);setEditing(undefined)}}/>}
     {confirmDelete&&<ConfirmDialog title={`Remove “${confirmDelete.title}”?`} body="This removes the owned copy and its reading history from your library. This cannot be undone." confirm="Remove book" onClose={()=>setConfirmDelete(null)} onConfirm={deleteBook}/>} {toast&&<div className="toast" role="status">{toast}</div>}
-  </div>;
+  </div></>;
 }

@@ -9,6 +9,22 @@
   try {
     const context = await invoke('smoke_context');
     const info = await invoke('get_app_info');
+    const waitFor=async(predicate)=>{for(let i=0;i<180;i++){if(await predicate())return;await new Promise(resolve=>setTimeout(resolve,25));}throw new Error('Window state did not settle');};
+    await waitFor(()=>document.querySelector('.windows-shell'));
+    check('Windows uses theme-integrated chrome without native caption',!context.window.decorated && !!document.querySelector('.window-chrome'));
+    check('Windows remains resizable',context.window.resizable);
+    if(context.stage==='reopen'){
+      document.querySelector('[aria-label="Maximize window"]').click();
+      await waitFor(async()=> (await invoke('smoke_context')).window.maximized && !!document.querySelector('[aria-label="Restore window"]'));
+      check('custom Maximize button maximizes the native window',true);
+      document.querySelector('[aria-label="Restore window"]').click();
+      await waitFor(async()=> !(await invoke('smoke_context')).window.maximized && !!document.querySelector('[aria-label="Maximize window"]'));
+      check('custom Restore button restores the native window',true);
+      document.querySelector('[aria-label="Minimize window"]').click();
+      await waitFor(async()=> (await invoke('smoke_context')).window.minimized);
+      check('custom Minimize button minimizes the native window',true);
+      await invoke('smoke_context',{restoreWindow:true});
+    }
     let book;
     if (context.stage === 'initial') {
       check('release first launch has an empty catalog', (await list()).length === 0);
@@ -46,13 +62,26 @@
       const image=new Image();image.src=source;await image.decode();
       check('native WebView decodes the persisted managed cover',image.naturalWidth===267 && image.naturalHeight===600);
       if(context.stage==='scaled') {
-        for(let frame=0;frame<120 && !document.querySelector('.app-shell');frame++) await new Promise(requestAnimationFrame);
+        for(let frame=0;frame<120 && !document.querySelector('.mac-shell');frame++) await new Promise(requestAnimationFrame);
         await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame);
-        check('200 percent native WebView zoom renders the application',!!document.querySelector('.app-shell'));
-        check('200 percent native WebView zoom activates compact navigation',innerWidth<=760 && getComputedStyle(document.querySelector('.sidebar')).position==='fixed');
+        check('200 percent native WebView zoom renders the application',!!document.querySelector('.mac-shell'));
+        check('200 percent native WebView zoom activates compact navigation',innerWidth<=760 && getComputedStyle(document.querySelector('.mac-sidebar')).position==='fixed');
         check('200 percent native WebView zoom has no document horizontal overflow',document.documentElement.scrollWidth<=innerWidth+1);
-        const add=document.querySelector('.add-button');
+        const add=document.querySelector('.add-round');
         check('200 percent native WebView zoom keeps Add book visible',!!add && getComputedStyle(add).display!=='none' && add.getBoundingClientRect().width>0);
+        const controls=[...document.querySelectorAll('.window-controls button')];
+        check('200 percent native WebView zoom keeps all Windows controls reachable',controls.length===3 && controls.every(button=>{const r=button.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth && r.bottom<=innerHeight && button.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));}));
+        add.click();await waitFor(()=>document.querySelector('[aria-modal="true"]'));
+        check('Windows caption remains reachable above a modal edit sheet',controls.every(button=>{const r=button.getBoundingClientRect();return !button.closest('[inert]') && button.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));}));
+        document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+        await waitFor(()=>!document.querySelector('[aria-modal="true"]'));
+        const settings=[...document.querySelectorAll('.sb-row')].find(button=>button.textContent.trim()==='Settings');settings.click();
+        await waitFor(()=>document.querySelector('.theme-choice'));
+        for(const theme of ['Dark','Light']){
+          [...document.querySelectorAll('.theme-choice button')].find(button=>button.textContent.trim()===theme).click();
+          await waitFor(()=>document.documentElement.dataset.theme===theme.toLowerCase());
+          check(`Windows caption matches the ${theme.toLowerCase()} app theme`,getComputedStyle(document.querySelector('.window-chrome')).backgroundColor===getComputedStyle(document.querySelector('.mac-shell')).backgroundColor);
+        }
       }
       if(context.stage==='cleanup') {
         const path=info.databasePath.replace(/library\.db$/,'smoke-portable.meridian.zip');

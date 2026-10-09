@@ -29,6 +29,10 @@ export function Sidebar({ page, scope, total, statusCounts, collections, nowRead
   const progress = nowReading?.pageCount && nowReading.currentPage ? Math.round(nowReading.currentPage / nowReading.pageCount * 100) : 0;
   return <aside className="mac-sidebar" aria-label="Sidebar">
     <div className="traffic-space" aria-hidden="true" data-tauri-drag-region />
+    <div className="sidebar-brand">
+      <img className="sidebar-logo-light" src="/brand/meridian-logo.svg" alt="Meridian" width="158" height="43"/>
+      <img className="sidebar-logo-dark" src="/brand/meridian-logo-dark.svg" alt="Meridian" width="158" height="43"/>
+    </div>
     <nav aria-label="Library">
       <Row icon={LibraryBig} label="All Books" count={total} active={inLibrary && scope.kind === "all"} onClick={() => onNavigate("library", { kind: "all" })} />
       <Row icon={BookOpen} label="Reading Now" count={statusCounts.Reading ?? 0} active={page === "reading"} onClick={() => onNavigate("reading")} />

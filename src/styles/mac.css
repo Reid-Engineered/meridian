@@ -88,6 +88,11 @@ h1,h2,h3{letter-spacing:-.01em}
   border:1px solid var(--border-soft);box-shadow:var(--float-shadow);backdrop-filter:blur(30px) saturate(1.4);
   display:flex;flex-direction:column;padding:10px 10px 12px;overflow-y:auto}
 .traffic-space{height:30px;flex:none}
+.sidebar-brand{padding:2px 8px 14px;flex:none}
+.sidebar-brand img{display:block;width:158px;max-width:100%;height:auto}
+.sidebar-brand .sidebar-logo-dark{display:none}
+[data-theme="dark"] .sidebar-brand .sidebar-logo-light{display:none}
+[data-theme="dark"] .sidebar-brand .sidebar-logo-dark{display:block}
 .mac-sidebar nav{display:flex;flex-direction:column;gap:1px}
 .sb-section{margin-top:14px}
 .sb-heading{margin:4px 10px 6px;font-size:11px;font-weight:600;color:var(--faint)}
@@ -187,7 +192,7 @@ h1,h2,h3{letter-spacing:-.01em}
   .mac-shell{display:block;height:auto}
   .mac-content{margin-left:0;height:auto;min-height:100vh;padding-bottom:72px}
   .mac-sidebar{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:58px;flex-direction:row;padding:5px;overflow-x:auto;overflow-y:hidden}
-  .mac-sidebar .traffic-space,.sb-now,.sb-count{display:none}
+  .mac-sidebar .traffic-space,.mac-sidebar .sidebar-brand,.sb-now,.sb-count{display:none}
   /* Collections stay reachable: keep the All Collections entry, hide the individual rows. */
   .mac-sidebar .sb-section{margin:0;flex:none}
   .sb-section .sb-heading,.sb-section .sb-row:not(.sb-keep){display:none}
@@ -361,4 +366,27 @@ h1,h2,h3{letter-spacing:-.01em}
   .tb-actions>.search-anchor{flex:1 1 140px;min-width:96px;max-width:320px}
   /* app.css still positions the old top-bar search absolutely on phones */
   .mac-toolbar .global-search{position:static;left:auto;right:auto;top:auto;bottom:auto;width:100%}
+}
+
+/* Native Windows caption: the same ground as the app, with conventional Windows controls. */
+.window-chrome{position:fixed;inset:0 0 auto;height:32px;z-index:100;display:flex;align-items:center;justify-content:space-between;background:var(--bg);color:var(--text);user-select:none}
+.window-brand{display:flex;align-items:center;gap:8px;padding-left:12px;height:100%;font-size:12px;color:var(--muted)}
+.window-brand img{width:16px;height:16px;pointer-events:none}
+.window-controls{display:flex;height:100%}
+.window-controls button{display:grid;place-items:center;width:46px;height:32px;padding:0;border:0;border-radius:0;background:transparent;color:inherit;cursor:default}
+.window-controls svg{fill:none;stroke:currentColor;stroke-width:1;pointer-events:none}
+.window-controls button:hover{background:var(--fill2)}
+.window-controls button:focus-visible{outline:2px solid var(--accent-text);outline-offset:-3px}
+.window-controls .window-close:hover{background:#c42b1c;color:#fff}
+.window-error{position:absolute;right:8px;top:32px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:12px;box-shadow:var(--shadow)}
+.windows-shell{margin-top:32px;height:calc(100vh - 32px)}
+.windows-shell .mac-content{height:calc(100vh - 32px)}
+.windows-shell .mac-sidebar,.windows-shell .mac-inspector{top:40px}
+.windows-shell .traffic-space{height:8px}
+.windows-shell .modal-backdrop{top:32px}
+@media(max-width:760px){
+  .windows-shell{height:auto}
+  .windows-shell .mac-content{height:auto;min-height:calc(100vh - 32px)}
+  .windows-shell .mac-sidebar,.windows-shell .mac-inspector{top:auto}
+  .windows-shell .mac-toolbar{top:32px}
 }
