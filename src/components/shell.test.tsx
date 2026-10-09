@@ -32,6 +32,10 @@ describe('theme preference', () => {
     const onTheme = vi.fn();
     render(<SettingsPage theme="light" onTheme={onTheme} info={null} onExport={vi.fn()} onReset={() => {}} onRestored={vi.fn()} />);
     const group = screen.getByRole('group', { name: 'Theme' });
+    for (const [label, preference] of [['Strawberry', 'strawberry'], ['Mocha', 'mocha'], ['Ube', 'ube']]) {
+      fireEvent.click(within(group).getByRole('button', { name: label }));
+      expect(onTheme).toHaveBeenLastCalledWith(preference);
+    }
     expect(within(group).getByRole('button', { name: /Light/ }).getAttribute('aria-pressed')).toBe('true');
     fireEvent.click(within(group).getByRole('button', { name: /Automatic/ }));
     expect(onTheme).toHaveBeenCalledWith('system');

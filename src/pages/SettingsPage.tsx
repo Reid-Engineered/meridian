@@ -1,11 +1,18 @@
-import { Check, Database, Download, FolderOpen, Info, Monitor, Moon, RotateCcw, Sun, Upload } from "lucide-react";
+import { Check, Coffee, Database, Download, FolderOpen, Heart, Info, Monitor, Moon, RotateCcw, Sparkles, Sun, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { libraryService } from "../services/library";
 import type { AppInfo, BackupFileSelection, CoverStorage } from "../types";
 import type { ThemePreference } from "../theme";
 
-const themes:{value:ThemePreference;label:string;icon:typeof Sun}[]=[{value:"light",label:"Light",icon:Sun},{value:"dark",label:"Dark",icon:Moon},{value:"system",label:"Automatic",icon:Monitor}];
+const themes: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "Automatic", icon: Monitor },
+  { value: "strawberry", label: "Strawberry", icon: Heart },
+  { value: "mocha", label: "Mocha", icon: Coffee },
+  { value: "ube", label: "Ube", icon: Sparkles }
+];
 
 export function SettingsPage({theme,onTheme,info,onExport,onReset,onRestored}:{theme:ThemePreference;onTheme:(t:ThemePreference)=>void;info:AppInfo|null;onExport:()=>Promise<void>;onReset:()=>void;onRestored:()=>Promise<void>}){
   const native='__TAURI_INTERNALS__' in window;
