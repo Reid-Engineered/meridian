@@ -29,6 +29,19 @@ export function BookInspector({ book, onClose, onEdit, onDelete }: { book: BookD
     else document.querySelector<HTMLElement>("[data-focus-fallback]")?.focus();
     onClose();
   };
+  // Escape closes the inspector wherever focus is (it is non-modal), unless a modal layer is open:
+  // useModalFocus handles Escape for those in the capture phase and stops it first.
+  const closeRef = useRef(close);
+  closeRef.current = close;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      closeRef.current();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   const progress = book.pageCount && book.currentPage ? Math.round(book.currentPage / book.pageCount * 100) : 0;
   const published = [book.publicationYear, book.publisher].filter(Boolean).join(" · ");
   const facts: [string, string | number | null | undefined][] = [
@@ -36,8 +49,7 @@ export function BookInspector({ book, onClose, onEdit, onDelete }: { book: BookD
     ["ISBN", book.isbn13 || book.isbn10], ["Condition", book.condition], ["Shelf", book.location], ["Acquired", formatDate(book.dateAcquired)],
     ["Started", formatDate(book.dateStarted)], ["Finished", formatDate(book.dateFinished)],
   ];
-  return <aside ref={root} className="mac-inspector" aria-label={`${book.title} details`}
-    onKeyDown={e => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } }}>
+  return <aside ref={root} className="mac-inspector" aria-label={`${book.title} details`}>
     <button className="glass round insp-close" onClick={close} aria-label="Close"><X size={14} /></button>
     <div className="insp-cover">{book.coverUrl ? <CoverImage reference={book.coverUrl} alt={`Cover of ${book.title}`} /> : <div className="cover-placeholder"><span>{book.title}</span></div>}</div>
     <div className="insp-head">

@@ -66,4 +66,44 @@ describe('window shell', () => {
     expect(screen.queryByRole('complementary', { name: 'Dune details' })).toBeNull();
     expect(document.activeElement).toBe(book);
   });
+
+  it('closes the inspector with Escape while focus is still on the book that opened it', async () => {
+    localStorage.clear();
+    render(<App />);
+    const book = await screen.findByRole('button', { name: 'Open Dune' });
+    book.focus(); fireEvent.click(book);
+    expect(screen.getByRole('complementary', { name: 'Dune details' })).toBeTruthy();
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.queryByRole('complementary', { name: 'Dune details' })).toBeNull();
+    expect(document.activeElement).toBe(book);
+  });
+
+  it('leaves Escape to an open modal before the inspector', async () => {
+    localStorage.clear();
+    render(<App />);
+    const book = await screen.findByRole('button', { name: 'Open Dune' });
+    book.focus(); fireEvent.click(book);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from library' }));
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.getByRole('complementary', { name: 'Dune details' })).toBeTruthy();
+  });
+
+  it('closes the collection drawer when a book is opened from it, so the inspector is reachable', async () => {
+    localStorage.clear();
+    render(<App />);
+    await screen.findByRole('button', { name: 'Open Dune' });
+    const sidebar = screen.getByRole('complementary', { name: 'Sidebar' });
+    fireEvent.click(within(sidebar).getByRole('button', { name: /All Collections/ }));
+    const card = await screen.findByRole('button', { name: 'Open Science Fiction' });
+    card.focus(); fireEvent.keyDown(card, { key: 'Enter' });
+    const drawer = screen.getByRole('dialog', { name: 'Collection details' });
+    fireEvent.click(within(drawer).getByRole('button', { name: /Dune/ }));
+    expect(screen.queryByRole('dialog', { name: 'Collection details' })).toBeNull();
+    const inspector = screen.getByRole('complementary', { name: 'Dune details' });
+    expect(inspector.closest('[inert]')).toBeNull();
+    const edit = within(inspector).getByRole('button', { name: /Edit book/ });
+    edit.focus();
+    expect(document.activeElement).toBe(edit);
+  });
 });

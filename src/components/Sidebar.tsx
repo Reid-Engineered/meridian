@@ -18,8 +18,8 @@ type Props = {
   onNavigate: (page: Page, scope?: Scope) => void; onOpenBook: (book: BookDetail) => void;
 };
 
-function Row({ icon: Icon, label, count, active, muted, onClick }: { icon: LucideIcon; label: string; count?: number; active: boolean; muted?: boolean; onClick: () => void }) {
-  return <button className={`sb-row${active ? " active" : ""}${muted ? " muted-icon" : ""}`} aria-current={active ? "page" : undefined} onClick={onClick}>
+function Row({ icon: Icon, label, count, active, muted, keep, onClick }: { icon: LucideIcon; label: string; count?: number; active: boolean; muted?: boolean; keep?: boolean; onClick: () => void }) {
+  return <button className={`sb-row${active ? " active" : ""}${muted ? " muted-icon" : ""}${keep ? " sb-keep" : ""}`} aria-current={active ? "page" : undefined} onClick={onClick}>
     <Icon size={16} aria-hidden="true" /><span className="sb-label">{label}</span>{count !== undefined && <span className="sb-count">{count}</span>}
   </button>;
 }
@@ -38,7 +38,7 @@ export function Sidebar({ page, scope, total, statusCounts, collections, nowRead
     </nav>
     <nav aria-label="Collections" className="sb-section">
       <p className="sb-heading">Collections</p>
-      <Row icon={LayoutGrid} label="All Collections" count={collections.length} muted active={page === "collections"} onClick={() => onNavigate("collections")} />
+      <Row icon={LayoutGrid} label="All Collections" keep count={collections.length} muted active={page === "collections"} onClick={() => onNavigate("collections")} />
       {collections.map(c => <Row key={c.id} icon={Folder} label={c.name} count={c.bookCount} muted
         active={inLibrary && scope.kind === "collection" && scope.id === c.id} onClick={() => onNavigate("library", { kind: "collection", id: c.id })} />)}
     </nav>
