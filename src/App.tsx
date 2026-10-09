@@ -11,7 +11,7 @@ import { CollectionsPage } from "./pages/CollectionsPage";
 import { ReadingPage } from "./pages/ReadingPage";
 import { StatisticsPage } from "./pages/StatisticsPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { libraryService } from "./services/library";
+import { coverReadiness, libraryService } from "./services/library";
 import { useTheme } from "./theme";
 import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, ReadingStatus, Statistics } from "./types";
 
@@ -29,6 +29,15 @@ export default function App(){
   const theme=useTheme();
   const refresh=useCallback(async()=>{setLoading(true);try{const [filtered,all,c,s,i]=await Promise.all([libraryService.listBooks(query),libraryService.listBooks({sort:"date_added_desc"}),libraryService.listCollections(),libraryService.getStatistics(),libraryService.getAppInfo()]);setBooks(filtered);setAllBooks(all);setCollections(c);setStats(s);setInfo(i)}finally{setLoading(false)}},[query]);
   useEffect(()=>{refresh()},[refresh]);
+  useEffect(()=>{
+    // Warm the first shelf and likely next tabs, never the whole catalog.
+    coverReadiness.preload([
+      ...books.slice(0,24).map(b=>b.coverUrl),
+      ...allBooks.filter(b=>b.status==="Reading").slice(0,8).map(b=>b.coverUrl),
+      ...allBooks.filter(b=>b.status==="Want to Read").slice(0,4).map(b=>b.coverUrl),
+      ...collections.slice(0,4).flatMap(c=>allBooks.filter(b=>b.collectionIds.includes(c.id)).slice(0,3).map(b=>b.coverUrl)),
+    ]);
+  },[books,allBooks,collections]);
   useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.defaultPrevented||document.querySelector('[aria-modal="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="n"){e.preventDefault();setEditing(undefined);setFormOpen(true)}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();setPage("library");setTimeout(()=>document.querySelector<HTMLInputElement>(".global-search input")?.focus(),0)}};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler)},[]);
   const notify=(message:string)=>{setToast(message);setTimeout(()=>setToast(""),2600)};
   const saveBook=async(input:BookInput)=>{const saved=editing?await libraryService.updateBook(editing.id,input):await libraryService.createBook(input);setFormOpen(false);setEditing(undefined);setSelected(saved);notify(editing?"Changes saved":"Book added to your library");await refresh()};
@@ -41,7 +50,7 @@ export default function App(){
   const nowReading=useMemo(()=>allBooks.filter(b=>b.status==="Reading").sort((a,b)=>(b.dateStarted??"").localeCompare(a.dateStarted??""))[0],[allBooks]);
   const navigate=(next:Page,nextScope?:Scope)=>{
     setPage(next);
-    if(next==="library"&&nextScope)setQuery(q=>({...q,status:nextScope.kind==="status"?nextScope.status:undefined,collectionId:nextScope.kind==="collection"?nextScope.id:undefined}));
+    if(next==="library"&&nextScope)setQuery(q=>{const status=nextScope.kind==="status"?nextScope.status:undefined,collectionId=nextScope.kind==="collection"?nextScope.id:undefined;return q.status===status&&q.collectionId===collectionId?q:{...q,status,collectionId}});
   };
   const libraryTitle=scope.kind==="collection"?collections.find(c=>c.id===scope.id)?.name??"Collection":scope.kind==="status"?scope.status:"All Books";
   const head=page==="library"?{title:libraryTitle,subtitle:loading?"":query.search?`${plural(books.length)} matching “${query.search}”`:plural(books.length)}:pageTitles[page];

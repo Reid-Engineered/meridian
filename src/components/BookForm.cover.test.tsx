@@ -2,12 +2,12 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BookForm } from './BookForm';
-import { libraryService } from '../services/library';
+import { coverReadiness, libraryService } from '../services/library';
 import type { BookDetail } from '../types';
 
 const reference=`meridian-cover:${'a'.repeat(64)}.jpg`;
 const imported={reference,bytes:60000,width:400,height:600};
-beforeEach(()=>{Object.defineProperty(window,'__TAURI_INTERNALS__',{value:{},configurable:true});vi.spyOn(libraryService,'resolveCover').mockResolvedValue('data:image/jpeg;base64,fixture');});
+beforeEach(()=>{coverReadiness.clear();Object.defineProperty(HTMLImageElement.prototype,'decode',{value:()=>Promise.resolve(),configurable:true});Object.defineProperty(window,'__TAURI_INTERNALS__',{value:{},configurable:true});vi.spyOn(libraryService,'resolveCover').mockImplementation(async r=>r.startsWith('meridian-cover:')?'data:image/jpeg;base64,fixture':r);});
 afterEach(()=>{cleanup();vi.restoreAllMocks();delete(window as unknown as Record<string,unknown>).__TAURI_INTERNALS__;});
 it('imports, previews and saves a portable reference, then allows removing the cover',async()=>{
   vi.spyOn(libraryService,'chooseCover').mockResolvedValue(imported);const save=vi.fn().mockResolvedValue(undefined);

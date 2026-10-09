@@ -14,6 +14,8 @@ Settings reports actual stored-image count and MiB, with Refresh. This includes 
 
 The earlier 50–150 KB estimate remains an estimate, not a guaranteed per-cover size. Actual usage is shown in Settings. Encoding quality, dimensions, texture and source content affect the result.
 
+October 9 navigation follow-up: covers now also use a shared decoded-image cache and bounded preloading across tabs. See [cover navigation performance](COVER-NAVIGATION.md) for limits, invalidation and current evidence.
+
 ## Portable archive
 
 Settings Save backup now creates a `.meridian.zip`: one `catalog.json` containing the lossless version-2 schema-1 snapshot and `covers/<digest>.jpg` entries for precisely the managed images referenced by editions. Reading history, shared editions, identifiers and sequences remain preserved. Missing or corrupt referenced managed images abort saving; an existing destination is never overwritten.
