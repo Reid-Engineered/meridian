@@ -1,5 +1,7 @@
 # Meridian
 
+A clean way to keep track of your literature.
+
 Meridian is a private, local-first desktop application for cataloguing a personal book library. It uses Tauri 2, React, TypeScript, Rust, and SQLite. The warm, book-forward interface is based on the supplied LibMAN design references in `reference-ui/screens`.
 
 ## Architecture
