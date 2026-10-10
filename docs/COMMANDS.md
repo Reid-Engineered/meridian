@@ -58,3 +58,4 @@ Cover references use meridian-cover:<SHA-256>.jpg. Heavy import/archive operatio
 | restore_backup_file | {path, digest} | {summary, recoveryPath} | Review digest must match; complete recovery ZIP before replacement; catalog rollback on failure |
 
 Portable ZIP contains catalog.json and covers/<SHA-256>.jpg only. Limit: 2 GiB file/unpacked total, 100,001 entries, 64 MiB catalog, 512 KiB per managed JPEG. Remote/other cover references remain links; inspect reports their count. Old assets are never overwritten or removed. See COVERS-PORTABLE-BACKUP.md for the exact safety and qualification boundary.
+`find_duplicates`, `create_book_copy` and `merge_book_copies` are documented with contracts and recovery behavior in [DUPLICATES.md](DUPLICATES.md).

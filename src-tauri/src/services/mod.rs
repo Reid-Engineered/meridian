@@ -8,8 +8,27 @@ impl LibraryService {
   fn db(&self)->AppResult<std::sync::MutexGuard<'_,Connection>>{self.conn.lock().map_err(|_|AppError::Storage)}
   pub fn list(&self,q:&BookQuery)->AppResult<Vec<BookDetail>>{let db=self.db()?;LibraryRepository::list(&db,q)}
   pub fn get(&self,id:i64)->AppResult<BookDetail>{let db=self.db()?;LibraryRepository::get(&db,id)}
-  pub fn create(&self,input:&BookInput)->AppResult<BookDetail>{let mut db=self.db()?;LibraryRepository::create(&mut db,input)}
+  pub fn create(&self,input:&BookInput)->AppResult<BookDetail>{
+    let mut db=self.db()?;
+    if [input.isbn10.as_ref(),input.isbn13.as_ref()].iter().flatten().any(|s|!s.trim().is_empty()) && crate::duplicates::find(&db,input,None)?.iter().any(|m|m.reason=="isbn") {
+      return Err(AppError::InvalidOperation("That ISBN already belongs to an edition in your library. Open the existing entry or add another copy.".into()));
+    }
+    LibraryRepository::create(&mut db,input)
+  }
   pub fn update(&self,id:i64,input:&BookInput)->AppResult<BookDetail>{let mut db=self.db()?;LibraryRepository::update(&mut db,id,input)}
+  pub fn duplicates(&self,input:&BookInput,exclude:Option<i64>)->AppResult<Vec<crate::duplicates::DuplicateMatch>>{let db=self.db()?;crate::duplicates::find(&db,input,exclude)}
+  pub fn create_copy(&self,source:i64,input:&BookInput)->AppResult<BookDetail>{let mut db=self.db()?;LibraryRepository::create_copy(&mut db,source,input)}
+  pub fn merge_copies(&self,keep:i64,remove:i64,recovery_dir:&std::path::Path)->AppResult<BookDetail>{
+    let mut db=self.db()?;
+    if keep==remove{return Err(AppError::InvalidOperation("Choose two different library entries.".into()));}
+    let tx=db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    LibraryRepository::get(&tx,keep)?;LibraryRepository::get(&tx,remove)?;
+    let prior=crate::backup::snapshot_json(&tx)?;
+    std::fs::create_dir_all(recovery_dir)?;
+    crate::backup::save(&prior,&recovery_dir.join(format!("before-merge-{}.json",uuid::Uuid::new_v4())))?;
+    LibraryRepository::merge_in_transaction(&tx,keep,remove)?;
+    tx.commit()?;LibraryRepository::get(&db,keep)
+  }
   pub fn delete(&self,id:i64)->AppResult<()> {let db=self.db()?;LibraryRepository::delete(&db,id)}
   pub fn collections(&self)->AppResult<Vec<Collection>>{let db=self.db()?;LibraryRepository::collections(&db)}
   pub fn create_collection(&self,n:&str,d:&str)->AppResult<Collection>{let db=self.db()?;LibraryRepository::create_collection(&db,n,d)}

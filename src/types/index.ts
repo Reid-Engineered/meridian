@@ -64,6 +64,8 @@ export interface BookInput {
   dateFinished?: string;
 }
 
+export interface DuplicateMatch { book: BookDetail; reason: "isbn" | "titleAuthor"; }
+
 export interface Collection { id: number; name: string; description?: string | null; bookCount: number; covers: string[]; }
 export interface Statistics {
   totalBooks: number; finished: number; reading: number; unread: number; addedThisYear: number;

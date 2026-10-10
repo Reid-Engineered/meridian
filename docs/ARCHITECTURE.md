@@ -28,7 +28,7 @@ flowchart LR
 | Storage lifecycle | `src-tauri/src/database/mod.rs`, `migrations` | Connection settings and versioned migration |
 | Startup | `src-tauri/src/lib.rs` | App-data directory, cover directory, debug-only seeds, command registration |
 
-SQLite distinguishes works, editions and library copies. Author ordering belongs to the work; tags and collections link to copies; reading records link to copies. The current edit operation changes the latest reading record. Creating a book currently creates a new work and edition, and unique ISBN constraints prevent creating another edition with the same ISBN. Multiple-copy entry needs a dedicated operation later.
+SQLite distinguishes works, editions and library copies. Author ordering belongs to the work; tags and collections link to copies; reading records link to copies. The current edit operation changes the latest reading record. Creating a book creates a new work and edition; duplicate review can instead create another owned copy of an existing edition. ISBNs remain unique per edition. Reviewed merges preserve history, memberships and archived conflicts, with automatic recovery before mutation. See [duplicate handling](DUPLICATES.md).
 
 ## Storage and recovery
 

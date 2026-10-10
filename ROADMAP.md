@@ -107,7 +107,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 - [ ] Define a provider-neutral metadata result model and confirmation payload.
 - [ ] Add metadata-provider fallback support while keeping Open Library as the initial provider.
 - [ ] Implement ISBN-10/ISBN-13 checksum validation and normalization.
-- [ ] Add possible-duplicate detection by ISBN, title/author, and edition.
+- [x] Add possible-duplicate detection by ISBN and normalized title/author, with edition details for review (see docs/DUPLICATES.md).
 - [ ] Add commands for author, tag, collection, publisher, and series suggestions.
 - [ ] Preserve manually entered values when metadata lookup fails or returns incomplete data.
 
@@ -115,7 +115,7 @@ This roadmap assigns implementation work across **Codex**, **Claude**, and **Agy
 
 - [ ] Replace comma-separated author and tag fields with accessible removable chips and suggestions.
 - [ ] Add a metadata confirmation screen that clearly distinguishes fetched and existing values.
-- [ ] Design duplicate warnings with “open existing,” “add another copy,” and “continue anyway” choices.
+- [x] Implement duplicate warnings with open existing, add another copy and separate-edition choices; reviewed merging preserves history and saves recovery (see docs/DUPLICATES.md).
 - [ ] Add drag-and-drop cover support.
 - [ ] Add “Save and add another” without losing reusable values such as collection or shelf.
 - [ ] Improve inline validation and focus the first invalid field on submission.

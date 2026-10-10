@@ -2,11 +2,12 @@ use rusqlite::{params, params_from_iter, Connection, OptionalExtension, Transact
 use rusqlite::types::Value;
 use crate::{domain::{BookDetail,BookInput,BookQuery,Collection,CountItem,Statistics},error::{AppError,AppResult}};
 
+mod duplicates;
 pub struct LibraryRepository;
 fn clean(v:&Option<String>)->Option<String>{v.as_ref().map(|s|s.trim().to_string()).filter(|s|!s.is_empty())}
 impl LibraryRepository {
   pub fn create(conn:&mut Connection,input:&BookInput)->AppResult<BookDetail>{
-    if input.title.trim().is_empty(){return Err(AppError::MissingTitle)} let tx=conn.transaction()?;let id=Self::insert_graph(&tx,input)?;tx.commit()?;Self::get(conn,id)
+    if input.title.trim().is_empty(){return Err(AppError::MissingTitle)} let tx=conn.transaction()?;Self::release_orphan_isbns(&tx,input)?;let id=Self::insert_graph(&tx,input)?;tx.commit()?;Self::get(conn,id)
   }
   pub(crate) fn insert_graph(tx:&Transaction,input:&BookInput)->AppResult<i64>{
     tx.execute("INSERT INTO works(title,subtitle,description,original_publication_year,series,series_position) VALUES(?1,?2,?3,?4,?5,?6)",params![input.title.trim(),clean(&input.subtitle),clean(&input.description),input.publication_year,clean(&input.series),input.series_position])?;
@@ -21,6 +22,7 @@ impl LibraryRepository {
   fn replace_collections(tx:&Transaction,copy:i64,ids:&[i64])->AppResult<()>{tx.execute("DELETE FROM collection_copies WHERE copy_id=?1",[copy])?;for id in ids{tx.execute("INSERT OR IGNORE INTO collection_copies(collection_id,copy_id) VALUES(?1,?2)",params![id,copy])?;}Ok(())}
   pub fn update(conn:&mut Connection,id:i64,input:&BookInput)->AppResult<BookDetail>{
     if input.title.trim().is_empty(){return Err(AppError::MissingTitle)} let tx=conn.transaction()?;
+    Self::release_orphan_isbns(&tx,input)?;
     let ids:Option<(i64,i64)>=tx.query_row("SELECT e.work_id,c.edition_id FROM library_copies c JOIN editions e ON e.id=c.edition_id WHERE c.id=?1",[id],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;let (work,edition)=ids.ok_or(AppError::NotFound)?;
     tx.execute("UPDATE works SET title=?1,subtitle=?2,description=?3,original_publication_year=?4,series=?5,series_position=?6,updated_at=CURRENT_TIMESTAMP WHERE id=?7",params![input.title.trim(),clean(&input.subtitle),clean(&input.description),input.publication_year,clean(&input.series),input.series_position,work])?;
     tx.execute("DELETE FROM work_authors WHERE work_id=?1",[work])?;for (pos,name) in input.authors.iter().map(|x|x.trim()).filter(|x|!x.is_empty()).enumerate(){tx.execute("INSERT INTO authors(name) VALUES(?1) ON CONFLICT(name) DO NOTHING",[name])?;let aid:i64=tx.query_row("SELECT id FROM authors WHERE name=?1 COLLATE NOCASE",[name],|r|r.get(0))?;tx.execute("INSERT INTO work_authors(work_id,author_id,position) VALUES(?1,?2,?3)",params![work,aid,pos as i64])?;}

@@ -5,6 +5,12 @@ use crate::{domain::{AppInfo,BookDetail,BookInput,BookQuery,Collection,MetadataR
 #[tauri::command] pub fn get_book(state:State<AppState>,id:i64)->AppResult<BookDetail>{state.library.get(id)}
 #[tauri::command] pub fn create_book(state:State<AppState>,input:BookInput)->AppResult<BookDetail>{state.library.create(&input)}
 #[tauri::command] pub fn update_book(state:State<AppState>,id:i64,input:BookInput)->AppResult<BookDetail>{state.library.update(id,&input)}
+#[tauri::command] pub fn find_duplicates(state:State<AppState>,input:BookInput,exclude:Option<i64>)->AppResult<Vec<crate::duplicates::DuplicateMatch>>{state.library.duplicates(&input,exclude)}
+#[tauri::command] pub fn create_book_copy(state:State<AppState>,source:i64,input:BookInput)->AppResult<BookDetail>{state.library.create_copy(source,&input)}
+#[tauri::command] pub async fn merge_book_copies(state:State<'_,AppState>,keep:i64,remove:i64)->AppResult<BookDetail>{
+  let library=state.library.clone();let recovery=state.database_path.parent().ok_or(crate::error::AppError::Storage)?.join("recovery");
+  tauri::async_runtime::spawn_blocking(move||library.merge_copies(keep,remove,&recovery)).await.map_err(|_|crate::error::AppError::Storage)?
+}
 #[tauri::command] pub fn delete_book(state:State<AppState>,id:i64)->AppResult<()> {state.library.delete(id)}
 #[tauri::command] pub fn list_collections(state:State<AppState>)->AppResult<Vec<Collection>>{state.library.collections()}
 #[tauri::command] pub fn create_collection(state:State<AppState>,name:String,description:String)->AppResult<Collection>{state.library.create_collection(&name,&description)}

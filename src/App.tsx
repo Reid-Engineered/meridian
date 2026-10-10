@@ -40,7 +40,7 @@ export default function App(){
   },[books,allBooks,collections]);
   useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.defaultPrevented||document.querySelector('[aria-modal="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="n"){e.preventDefault();setEditing(undefined);setFormOpen(true)}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();setPage("library");setTimeout(()=>document.querySelector<HTMLInputElement>(".global-search input")?.focus(),0)}};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler)},[]);
   const notify=(message:string)=>{setToast(message);setTimeout(()=>setToast(""),2600)};
-  const saveBook=async(input:BookInput)=>{const saved=editing?await libraryService.updateBook(editing.id,input):await libraryService.createBook(input);setFormOpen(false);setEditing(undefined);setSelected(saved);notify(editing?"Changes saved":"Book added to your library");await refresh()};
+  const saveBook=async(input:BookInput,source?:number)=>{const saved=editing?await libraryService.updateBook(editing.id,input):source!==undefined?await libraryService.createBookCopy(source,input):await libraryService.createBook(input);setFormOpen(false);setEditing(undefined);setSelected(saved);notify(editing?"Changes saved":"Book added to your library");await refresh()};
   const deleteBook=async()=>{if(!confirmDelete)return;await libraryService.deleteBook(confirmDelete.id);setSelected(null);setConfirmDelete(null);notify("Book removed");await refresh()};
   const exportLibrary=async()=>{const data=await libraryService.exportLibrary();const blob=new Blob([data],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`meridian-catalog-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);notify("Catalog exported")};
   const openAdd=()=>{setEditing(undefined);setFormOpen(true)};
@@ -65,7 +65,7 @@ export default function App(){
       </Toolbar>
       {content}
     </main>
-    {selected&&<BookInspector key={selected.id} book={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null);setFormOpen(true)}} onDelete={()=>setConfirmDelete(selected)}/>} {formOpen&&<BookForm book={editing} collections={collections} onSave={saveBook} onClose={()=>{setFormOpen(false);setEditing(undefined)}}/>}
+    {selected&&<BookInspector key={selected.id} book={selected} onClose={()=>setSelected(null)} onEdit={()=>{setEditing(selected);setSelected(null);setFormOpen(true)}} onDelete={()=>setConfirmDelete(selected)}/>} {formOpen&&<BookForm book={editing} collections={collections} onSave={saveBook} onOpenExisting={existing=>{setFormOpen(false);setEditing(undefined);setSelected(existing)}} onMerged={async merged=>{setFormOpen(false);setEditing(undefined);setSelected(merged);notify("Entries merged; recovery backup saved");await refresh()}} onClose={()=>{setFormOpen(false);setEditing(undefined)}}/>}
     {confirmDelete&&<ConfirmDialog title={`Remove “${confirmDelete.title}”?`} body="This removes the owned copy and its reading history from your library. This cannot be undone." confirm="Remove book" onClose={()=>setConfirmDelete(null)} onConfirm={deleteBook}/>} {toast&&<div className="toast" role="status">{toast}</div>}
   </div></>;
 }
