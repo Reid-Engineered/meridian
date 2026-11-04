@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { copyFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
@@ -11,11 +11,18 @@ if(rust.status!==0) throw new Error(rust.error?.message ?? 'Could not inspect th
 const host=rust.stdout.match(/^host: (.+)$/m)?.[1];
 let config=smoke?JSON.parse(readFileSync(join(root,'scripts','smoke-config.json'),'utf8')):{};
 if(process.platform==='win32' && host?.endsWith('windows-gnu')) {
-  // webview2-com-sys copies its loader beside the executable during compilation.
-  // GNU links to that DLL; it must also be included beside the installed executable.
+  // Resolve the loader from the locked dependency before Tauri validates resources.
+  const metadata=spawnSync('cargo',['metadata','--locked','--format-version','1','--manifest-path','src-tauri/Cargo.toml'],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});
+  if(metadata.status!==0) throw new Error(metadata.stderr || 'Could not resolve WebView2 dependency.');
+  const dependency=JSON.parse(metadata.stdout).packages.find(item=>item.name==='webview2-com-sys');
+  if(!dependency) throw new Error('WebView2 dependency is missing.');
+  const arch=host.startsWith('x86_64-')?'x64':host.startsWith('i686-')?'x86':host.startsWith('aarch64-')?'arm64':null;
+  if(!arch) throw new Error(`Unsupported WebView2 architecture: ${host}`);
   const target=resolve(root,'src-tauri',process.env.CARGO_TARGET_DIR ?? 'target');
   const loader=join(target,...(process.env.CARGO_BUILD_TARGET?[process.env.CARGO_BUILD_TARGET]:[]),'release','WebView2Loader.dll');
-  config.bundle={...config.bundle,resources:{[loader]:'WebView2Loader.dll'}};
+  mkdirSync(dirname(loader),{recursive:true});
+  copyFileSync(join(dirname(dependency.manifest_path),arch,'WebView2Loader.dll'),loader);
+  config.bundle={...config.bundle,resources:{[relative(join(root,'src-tauri'),loader).replaceAll('\\','/')]: 'WebView2Loader.dll'}};
 }
 const args=['run','tauri','--','build',...(smoke?['--features','smoke-test']:[]),
   ...(Object.keys(config).length?['--config',JSON.stringify(config)]:[])];
