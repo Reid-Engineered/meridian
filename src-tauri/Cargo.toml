@@ -1,6 +1,6 @@
 [package]
 name = "meridian"
-version = "0.1.0"
+version = "0.1.1"
 description = "A private, local-first personal library"
 authors = ["Meridian"]
 edition = "2021"

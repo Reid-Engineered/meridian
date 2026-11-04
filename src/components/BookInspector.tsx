@@ -51,7 +51,7 @@ export function BookInspector({ book, onClose, onEdit, onDelete }: { book: BookD
   ];
   return <aside ref={root} className="mac-inspector" aria-label={`${book.title} details`}>
     <button className="glass round insp-close" onClick={close} aria-label="Close"><X size={14} /></button>
-    <div className="insp-cover">{book.coverUrl ? <CoverImage reference={book.coverUrl} alt={`Cover of ${book.title}`} /> : <div className="cover-placeholder"><span>{book.title}</span></div>}</div>
+    <div className="insp-cover">{book.coverUrl ? <CoverImage reference={book.coverUrl} alt={`Cover of ${book.title}`} eager /> : <div className="cover-placeholder"><span>{book.title}</span></div>}</div>
     <div className="insp-head">
       <h2>{book.title}</h2>
       {book.subtitle && <p className="insp-sub">{book.subtitle}</p>}

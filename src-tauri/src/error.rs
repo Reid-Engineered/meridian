@@ -3,6 +3,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AppError {
+    #[error("{0}")] InvalidOperation(String),
     #[error("{0}")] InvalidBackup(String),
     #[error("Database schema version {0} is not supported by this version of Meridian. Open it with a compatible application version.")] UnsupportedSchema(i64),
     #[error("The library database could not complete that operation.")] Database(#[from] rusqlite::Error),

@@ -3,9 +3,13 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import type { BackupSummary, RestoreResult, ImportedCover, CoverStorage, BackupFileSelection } from "../types";
 import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, MetadataResult, Statistics } from "../types";
 import { demoBooks, demoCollections } from "./demo";
+import { findDuplicates } from "./duplicates";
+import type { DuplicateMatch } from "../types";
+import { CoverReadiness } from "./coverReadiness";
 
 const inTauri = () => "__TAURI_INTERNALS__" in window;
 const coverCache = new Map<string, Promise<string>>();
+export const coverReadiness = new CoverReadiness(reference => libraryService.resolveCover(reference), reference => { coverCache.delete(reference); });
 const KEY = "meridian-demo-library-v1";
 const COLLECTION_KEY = "meridian-demo-collections-v1";
 
@@ -55,6 +59,28 @@ export const libraryService = {
     const books = localBooks(); const current = books.find(b=>b.id===id)!; const next = { ...current, ...input };
     saveLocal(books.map(b=>b.id===id ? next : b)); return next;
   },
+  async findDuplicates(input: BookInput, exclude?: number): Promise<DuplicateMatch[]> {
+    return inTauri() ? invoke("find_duplicates", { input, exclude: exclude ?? null }) : findDuplicates(localBooks(), input, exclude);
+  },
+  async createBookCopy(source: number, input: BookInput): Promise<BookDetail> {
+    if (inTauri()) return invoke("create_book_copy", { source, input });
+    const original = localBooks().find(b => b.id === source);
+    if (!original) throw new Error("That book is no longer in your library.");
+    return this.createBook({...input, title:original.title, subtitle:original.subtitle??undefined, authors:original.authors,
+      description:original.description??undefined, publicationYear:original.publicationYear??undefined, series:original.series??undefined,
+      seriesPosition:original.seriesPosition??undefined, isbn10:original.isbn10??undefined, isbn13:original.isbn13??undefined,
+      publisher:original.publisher??undefined, pageCount:original.pageCount??undefined, language:original.language??undefined,
+      format:original.format, coverUrl:original.coverUrl??undefined});
+  },
+  async mergeBookCopies(keep: number, remove: number): Promise<BookDetail> {
+    if (inTauri()) return invoke("merge_book_copies", { keep, remove });
+    const books=localBooks(), kept=books.find(b=>b.id===keep), removed=books.find(b=>b.id===remove);
+    if (!kept || !removed || keep===remove) throw new Error("Choose two different library entries.");
+    localStorage.setItem("meridian-before-merge",JSON.stringify(books));
+    const merged={...kept, tags:[...new Set([...kept.tags,...removed.tags])],collectionIds:[...new Set([...kept.collectionIds,...removed.collectionIds])],
+      notes:`${kept.notes??""}\n\nMerged entry #${remove}: ${removed.title}\n${removed.notes??""}\n\nOriginal entry details:\n${JSON.stringify(removed,null,2)}`.trim()};
+    saveLocal(books.filter(b=>b.id!==remove).map(b=>b.id===keep?merged:b));return merged;
+  },
   async deleteBook(id: number): Promise<void> { if (inTauri()) return invoke("delete_book", { id }); saveLocal(localBooks().filter(b=>b.id!==id)); },
   async listCollections(): Promise<Collection[]> { return inTauri() ? invoke("list_collections") : localCollections(); },
   async createCollection(name: string, description = ""): Promise<Collection> {
@@ -92,7 +118,8 @@ export const libraryService = {
   async resolveCover(reference:string):Promise<string>{
     if(!reference.startsWith('meridian-cover:'))return reference;
     let cached=coverCache.get(reference);
-    if(!cached){cached=invoke<string>('read_cover',{reference}).catch(error=>{coverCache.delete(reference);throw error});coverCache.set(reference,cached);if(coverCache.size>128)coverCache.delete(coverCache.keys().next().value!);}
+    if(cached){coverCache.delete(reference);coverCache.set(reference,cached);}
+    if(!cached){cached=invoke<string>('read_cover',{reference}).catch(error=>{if(coverCache.get(reference)===cached)coverCache.delete(reference);throw error});coverCache.set(reference,cached);if(coverCache.size>128)coverCache.delete(coverCache.keys().next().value!);}
     return cached;
   },
   async getCoverStorage():Promise<CoverStorage>{return inTauri()?invoke('get_cover_storage'):{files:0,bytes:0};},
@@ -104,7 +131,7 @@ export const libraryService = {
     return {...inspection,path,name:path.split(/[\\/]/).pop()||path};
   },
   async restoreBackupFile(selection:BackupFileSelection):Promise<RestoreResult>{
-    const result=await invoke<RestoreResult>('restore_backup_file',{path:selection.path,digest:selection.digest});coverCache.clear();return result;
+    const result=await invoke<RestoreResult>('restore_backup_file',{path:selection.path,digest:selection.digest});coverCache.clear();coverReadiness.clear();return result;
   },
   async inspectBackup(json:string):Promise<BackupSummary>{
     if(!inTauri()) throw new Error("Database restore is available in the desktop app.");
@@ -112,7 +139,7 @@ export const libraryService = {
   },
   async restoreBackup(json:string):Promise<RestoreResult>{
     if(!inTauri()) throw new Error("Database restore is available in the desktop app.");
-    return invoke("restore_backup",{json});
+    const result=await invoke<RestoreResult>("restore_backup",{json});coverCache.clear();coverReadiness.clear();return result;
   },
-  resetDemo(){ localStorage.removeItem(KEY); localStorage.removeItem(COLLECTION_KEY); }
+  resetDemo(){ localStorage.removeItem(KEY); localStorage.removeItem(COLLECTION_KEY); coverCache.clear();coverReadiness.clear(); }
 };

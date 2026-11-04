@@ -18,6 +18,8 @@ Meridian is a private, local-first desktop application for cataloguing a persona
 
 The browser development preview uses local storage and sample data. The Tauri application uses SQLite in the platform application-data directory. Debug builds seed ten sample titles only when the database is empty; release builds begin with an empty library.
 
+Covers are preloaded for nearby shelves and likely next tabs, with decoded images reused across navigation. Loading limits, regression evidence and remaining desktop acceptance checks are in [cover navigation performance](docs/COVER-NAVIGATION.md).
+
 ## Database model
 
 The schema distinguishes literary works, publication editions, and owned library copies. Authors use a `work_authors` join table; tags and collections use their own many-to-many join tables. Reading records are separate from copies so the model can support multiple reading sessions later. Foreign keys, constraints, indexes, and transactions protect relational integrity.

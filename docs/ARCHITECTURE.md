@@ -28,7 +28,7 @@ flowchart LR
 | Storage lifecycle | `src-tauri/src/database/mod.rs`, `migrations` | Connection settings and versioned migration |
 | Startup | `src-tauri/src/lib.rs` | App-data directory, cover directory, debug-only seeds, command registration |
 
-SQLite distinguishes works, editions and library copies. Author ordering belongs to the work; tags and collections link to copies; reading records link to copies. The current edit operation changes the latest reading record. Creating a book currently creates a new work and edition, and unique ISBN constraints prevent creating another edition with the same ISBN. Multiple-copy entry needs a dedicated operation later.
+SQLite distinguishes works, editions and library copies. Author ordering belongs to the work; tags and collections link to copies; reading records link to copies. The current edit operation changes the latest reading record. Creating a book creates a new work and edition; duplicate review can instead create another owned copy of an existing edition. ISBNs remain unique per edition. Reviewed merges preserve history, memberships and archived conflicts, with automatic recovery before mutation. See [duplicate handling](DUPLICATES.md).
 
 ## Storage and recovery
 
@@ -41,6 +41,10 @@ Debug sample initialization is a single transaction and reuses existing named co
 ## Completion boundary
 
 `docs/BASELINE.md` and `docs/PHASE0-SMOKE.md` record demonstrated behavior, outstanding acceptance checks and risks. `npm run verify` builds desktop bundles through a toolchain-aware wrapper. Separate `smoke-test` builds verify installation, native WebView/IPC commands, restart and 200% zoom against marked isolated storage. Normal builds exclude their driver and commands. These checks do not prove clean-profile installation or screen-reader accessibility. Backup/restore now has isolated round-trip, rollback and installed native IPC evidence; see BACKUP-RESTORE.md.
+
+## Cover readiness
+
+Frontend cover readiness lives in `src/services/coverReadiness.ts`, separate from native reference resolution in `library.ts`. One shared bounded decode queue serves every CoverImage surface, prioritizes visible requests, and preserves decoded images across page remounts. Successful restores invalidate both layers; generation checks prevent older work from populating a restored cache. See [cover navigation performance](COVER-NAVIGATION.md).
 
 ## Backup boundary
 

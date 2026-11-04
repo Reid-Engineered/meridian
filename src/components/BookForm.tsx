@@ -5,6 +5,8 @@ import type { BookDetail, BookFormat, BookInput, Collection, MetadataResult, Rea
 import { EMPTY_BOOK } from "../types";
 import { libraryService } from "../services/library";
 import { CoverImage } from "./CoverImage";
+import { DuplicateReview } from "./DuplicateReview";
+import type { DuplicateMatch } from "../types";
 
 const statuses:ReadingStatus[]=["Want to Read","Unread","Reading","Finished","Did Not Finish"];
 const formats:BookFormat[]=["Hardcover","Paperback","Mass Market Paperback","Ebook","Audiobook","Other"];
@@ -15,11 +17,14 @@ const asInput=(book?:BookDetail):BookInput=>book?{
   collectionIds:book.collectionIds,location:book.location??"",condition:book.condition??"",notes:book.notes??"",review:book.review??"",dateAcquired:book.dateAcquired??"",dateStarted:book.dateStarted??"",dateFinished:book.dateFinished??""
 }:structuredClone(EMPTY_BOOK);
 
-export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;collections:Collection[];onSave:(b:BookInput)=>Promise<void>;onClose:()=>void}){
+export function BookForm({book,collections,onSave,onClose,onOpenExisting,onMerged}:{book?:BookDetail;collections:Collection[];onSave:(b:BookInput,source?:number)=>Promise<void>;onClose:()=>void;onOpenExisting?:(b:BookDetail)=>void;onMerged?:(b:BookDetail)=>Promise<void>}){
   const [form,setForm]=useState<BookInput>(()=>asInput(book)); const [tab,setTab]=useState<"details"|"reading"|"copy">("details");
   const [authorText,setAuthorText]=useState(form.authors.join(", ")); const [tagText,setTagText]=useState(form.tags.join(", ")); const [error,setError]=useState(""); const [saving,setSaving]=useState(false); const [isbnBusy,setIsbnBusy]=useState(false);
-  const modalRef = useModalFocus<HTMLDivElement>(onClose);
+  const modalRef = useModalFocus<HTMLDivElement>(()=>{if(!submitLock.current)onClose()});
   const [coverBusy,setCoverBusy]=useState(false);
+  const [duplicates,setDuplicates]=useState<DuplicateMatch[]>([]);
+  const [pending,setPending]=useState<BookInput>();
+  const submitLock=useRef(false);
   const chooseCover=async()=>{setError('');setCoverBusy(true);try{const imported=await libraryService.chooseCover();if(imported)set('coverUrl',imported.reference)}catch(e){setError(e instanceof Error?e.message:String(e))}finally{setCoverBusy(false)}};
   const titleRef = useRef<HTMLInputElement>(null);
   const id = useId();
@@ -28,15 +33,16 @@ export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;col
   const set=<K extends keyof BookInput>(key:K,value:BookInput[K])=>setForm(f=>({...f,[key]:value}));
   const applyMeta=(m:MetadataResult)=>setForm(f=>({...f,title:m.title||f.title,subtitle:m.subtitle??f.subtitle,authors:m.authors.length?m.authors:f.authors,publisher:m.publisher??f.publisher,publicationYear:m.publicationYear??f.publicationYear,pageCount:m.pageCount??f.pageCount,coverUrl:f.coverUrl?.startsWith("meridian-cover:")?f.coverUrl:m.coverUrl??f.coverUrl,isbn10:m.isbn10??f.isbn10,isbn13:m.isbn13??f.isbn13,description:m.description??f.description}));
   const lookup=async()=>{const isbn=form.isbn13||form.isbn10;if(!isbn){setError("Enter an ISBN first.");return}setIsbnBusy(true);setError("");try{const m=await libraryService.lookupIsbn(isbn);applyMeta(m);setAuthorText(m.authors.join(", "));}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"Metadata lookup is unavailable. You can continue manually.");}finally{setIsbnBusy(false)}};
-  const submit=async(e:React.FormEvent)=>{e.preventDefault(); if(coverBusy||saving)return; const authors=authorText.split(",").map(x=>x.trim()).filter(Boolean);const tags=tagText.split(",").map(x=>x.trim()).filter(Boolean);if(!form.title.trim()){setError("A title is required.");setTab("details");queueMicrotask(()=>titleRef.current?.focus());return}setSaving(true);setError("");try{await onSave({...form,title:form.title.trim(),authors,tags});}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"The book could not be saved.");setSaving(false)}};
-  return <div ref={modalRef} className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} tabIndex={-1}><form className="book-form" onSubmit={submit} aria-label={book?"Edit book":"Add book"}>
-    <header className="form-header"><div><span className="form-kicker">{book?"Library copy":"New addition"}</span><h2 id={`${id}-title`}>{book?"Edit book":"Add to your library"}</h2></div><button type="button" className="icon-button" onClick={onClose} aria-label="Close"><X size={20}/></button></header>
+  const submit=async(e:React.FormEvent)=>{e.preventDefault(); if(coverBusy||submitLock.current)return; const authors=authorText.split(",").map(x=>x.trim()).filter(Boolean);const tags=tagText.split(",").map(x=>x.trim()).filter(Boolean);if(!form.title.trim()){setError("A title is required.");setTab("details");queueMicrotask(()=>titleRef.current?.focus());return}submitLock.current=true;setSaving(true);setError("");try{const input={...form,title:form.title.trim(),authors,tags};const matches=await libraryService.findDuplicates(input,book?.id);if(matches.length){setPending(input);setDuplicates(matches)}else{await onSave(input)}}catch(e){setError(e instanceof Error?e.message:typeof e==="string"?e:"The book could not be saved.")}finally{submitLock.current=false;setSaving(false)}};
+  return <><div ref={modalRef} className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} tabIndex={-1}><form className="book-form" onSubmit={submit} aria-label={book?"Edit book":"Add book"}>
+    <header className="form-header"><div><span className="form-kicker">{book?"Library copy":"New addition"}</span><h2 id={`${id}-title`}>{book?"Edit book":"Add to your library"}</h2></div><button type="button" className="icon-button" disabled={saving} onClick={onClose} aria-label="Close"><X size={20}/></button></header>
     <div className="form-tabs" role="tablist" aria-label="Book fields">{tabs.map((t,index)=><button type="button" role="tab" id={`${id}-${t}`} aria-controls={`${id}-panel`} aria-selected={tab===t} tabIndex={tab===t?0:-1} className={tab===t?"active":""} onClick={()=>selectTab(t)} onKeyDown={e=>{
       const next=e.key==="ArrowRight"?(index+1)%tabs.length:e.key==="ArrowLeft"?(index+tabs.length-1)%tabs.length:e.key==="Home"?0:e.key==="End"?tabs.length-1:null;
       if(next!==null){e.preventDefault();selectTab(tabs[next]);document.getElementById(`${id}-${tabs[next]}`)?.focus();}
     }} key={t}>{t==="copy"?"My copy":t[0].toUpperCase()+t.slice(1)}</button>)}</div>
     <div className="form-scroll" role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${tab}`}>
     {tab==="details"&&<>
+      {book&&<p>Book details are shared by copies of the same edition. Your reading state, notes and location belong to this copy.</p>}
       <div className="isbn-lookup"><Search size={17}/><input value={form.isbn13||form.isbn10||""} onChange={e=>set("isbn13",e.target.value)} placeholder="ISBN-10 or ISBN-13" aria-label="ISBN"/><button type="button" onClick={lookup} disabled={isbnBusy}>{isbnBusy?"Looking up…":"Look up"}</button></div>
       <div className="field-grid"><label className="span-2"><span>Title <b>*</b></span><input data-modal-initial ref={titleRef} aria-required="true" value={form.title} onChange={e=>set("title",e.target.value)}/></label><label className="span-2">Subtitle<input value={form.subtitle} onChange={e=>set("subtitle",e.target.value)}/></label>
       <label className="span-2">Authors <small>Separate names with commas</small><input value={authorText} onChange={e=>setAuthorText(e.target.value)} placeholder="Ursula K. Le Guin"/></label>
@@ -57,6 +63,6 @@ export function BookForm({book,collections,onSave,onClose}:{book?:BookDetail;col
       <label className="span-2">Private notes<textarea rows={5} value={form.notes} onChange={e=>set("notes",e.target.value)} placeholder="Edition details, memories, lending notes…"/></label></div>}
     </div>
     {error&&<p className="form-error" role="alert"><BookOpen size={16}/>{error}</p>}
-    <footer className="form-actions"><button type="button" className="button secondary" onClick={onClose}>Cancel</button><button className="button primary" disabled={saving||coverBusy}>{saving?"Saving…":book?"Save changes":"Add book"}</button></footer>
-  </form></div>;
+    <footer className="form-actions"><button type="button" className="button secondary" disabled={saving} onClick={onClose}>Cancel</button><button className="button primary" disabled={saving||coverBusy}>{saving?"Saving…":book?"Save changes":"Add book"}</button></footer>
+  </form></div>{pending&&duplicates.length>0&&<DuplicateReview matches={duplicates} editing={book} onClose={()=>{setPending(undefined);setDuplicates([])}} onOpen={existing=>onOpenExisting?.(existing)} onCopy={source=>onSave(pending,source)} onSeparate={()=>onSave(pending)} onMerged={async merged=>{await onMerged?.(merged)}}/>}</>;
 }
