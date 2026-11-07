@@ -2,7 +2,7 @@
 
 ## SolidCraft 95 theme
 
-Meridian's optional Windows 95 theme adapts palette and bevel conventions from
+Meridian's optional Meridian 95 theme adapts palette and bevel conventions from
 SolidCraft 95 by SolidCraft contributors, used under the MIT license option.
 The Meridian stylesheet is an independent CSS adaptation; no SolidCraft fonts,
 logos or CAD artwork are distributed with it.

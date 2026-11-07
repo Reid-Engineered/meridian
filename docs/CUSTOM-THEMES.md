@@ -1,8 +1,8 @@
 # Custom appearance themes
 
-## Windows 95
+## Meridian 95
 
-Settings > Appearance > Theme offers **Windows 95**. The explicit `windows-95`
+Settings > Appearance > Theme offers **Meridian 95**. The explicit `windows-95`
 preference persists across launches and remains independent of operating-system
 light/dark changes. Automatic continues to select Light or Dark.
 
@@ -26,7 +26,7 @@ included in the packaged frontend at `public/licenses/solidcraft-95.txt`.
 
 November 6 verification: `npm run verify -- --quick` passed 66 frontend tests,
 32 Rust tests, the production build and isolated 0/10/1,000/10,000-book fixtures.
-The added application test selects Windows 95, remounts to restore it and
+The added application test selects Meridian 95, remounts to restore it and
 switches back to Light. Existing window-operation tests still pass.
 An isolated headless Chrome render of the production bundle checked theme
 selection/color, switching back, and Settings horizontal page overflow at

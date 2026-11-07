@@ -32,7 +32,7 @@ describe('theme preference', () => {
     const onTheme = vi.fn();
     render(<SettingsPage theme="light" onTheme={onTheme} info={null} onExport={vi.fn()} onReset={() => {}} onRestored={vi.fn()} />);
     const group = screen.getByRole('group', { name: 'Theme' });
-    for (const [label, preference] of [['Strawberry', 'strawberry'], ['Mocha', 'mocha'], ['Ube', 'ube'], ['Windows 95', 'windows-95']]) {
+    for (const [label, preference] of [['Strawberry', 'strawberry'], ['Mocha', 'mocha'], ['Ube', 'ube'], ['Meridian 95', 'windows-95']]) {
       fireEvent.click(within(group).getByRole('button', { name: label }));
       expect(onTheme).toHaveBeenLastCalledWith(preference);
     }
@@ -43,16 +43,16 @@ describe('theme preference', () => {
 });
 
 describe('window shell', () => {
-  it('applies Windows 95 from Settings, restores it on remount, and switches back', async () => {
+  it('applies Meridian 95 from Settings, restores it on remount, and switches back', async () => {
     localStorage.clear();
     const app = render(<App />);
     await screen.findByRole('button', { name: 'Open Dune' });
     const openSettings = () => fireEvent.click(within(screen.getByRole('complementary', { name: 'Sidebar' })).getByRole('button', { name: /Settings/ }));
     openSettings();
-    fireEvent.click(screen.getByRole('button', { name: 'Windows 95' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Meridian 95' }));
     expect(document.documentElement.dataset.theme).toBe('windows-95');
     expect(localStorage.getItem('meridian-theme')).toBe('windows-95');
-    expect(screen.getByRole('button', { name: 'Windows 95' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Meridian 95' }).getAttribute('aria-pressed')).toBe('true');
     app.unmount();
     render(<App />);
     await screen.findByRole('button', { name: 'Open Dune' });
@@ -60,7 +60,7 @@ describe('window shell', () => {
     openSettings();
     fireEvent.click(screen.getByRole('button', { name: 'Light' }));
     expect(document.documentElement.dataset.theme).toBe('light');
-    expect(screen.getByRole('button', { name: 'Windows 95' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('button', { name: 'Meridian 95' }).getAttribute('aria-pressed')).toBe('false');
     localStorage.clear();
   });
 

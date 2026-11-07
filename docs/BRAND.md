@@ -1,6 +1,6 @@
 # Official Meridian logo
 
-The Windows 95 theme uses `public/brand/meridian-logo-retro.svg` in the sidebar:
+The Meridian 95 theme uses `public/brand/meridian-logo-retro.svg` in the sidebar:
 an original pixel-grid open book with navy outlines, teal binding and ivory
 pages, paired with a custom bitmap-style MERIDIAN wordmark. The letters are
 vector paths, so this treatment needs no font downloads or installed retro

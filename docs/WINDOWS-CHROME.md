@@ -1,6 +1,6 @@
 # Windows window chrome
 
-The optional Windows 95 theme styles the existing 32px caption navy with white
+The optional Meridian 95 theme styles the existing 32px caption navy with white
 title text and silver raised caption buttons. Its scoped stylesheet changes
 appearance only; native operations, drag regions and control sizes remain as
 described below. The November 6 frontend checks include the existing window

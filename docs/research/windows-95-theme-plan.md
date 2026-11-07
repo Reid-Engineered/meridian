@@ -1,10 +1,10 @@
-# Windows 95 theme implementation plan
+# Meridian 95 theme implementation plan
 
 Research completed 2026-11-06 against Meridian checkout `theme-integration` at `f1d85fb` and SolidCraft revision `871014f955a76fd308ce156e68c93e6372906005`. The implementation now ships in PR #9: it adds the theme preference, scoped stylesheet, Settings choice and a theme-specific sidebar wordmark. This document records the implementation approach and adaptations.
 
 ## Recommendation
 
-**Windows 95** is an optional built-in Meridian theme with persisted identifier `windows-95`. It adapts SolidCraft 95's silver controls, navy selection/title bars, directional bevels, and restrained corners to Meridian's current layout. Existing control sizes, navigation and library covers remain. The sidebar uses an original pixel-grid open-book logo and outlined bitmap MERIDIAN wordmark in this theme; other themes retain the official branding. The theme is available on every platform; only the existing Windows desktop caption receives application-controlled window styling.
+**Meridian 95** is an optional built-in Meridian theme with persisted identifier `windows-95`. It adapts SolidCraft 95's silver controls, navy selection/title bars, directional bevels, and restrained corners to Meridian's current layout. Existing control sizes, navigation and library covers remain. The sidebar uses an original pixel-grid open-book logo and outlined bitmap MERIDIAN wordmark in this theme; other themes retain the official branding. The theme is available on every platform; only the existing Windows desktop caption receives application-controlled window styling.
 
 The source is a contemporary interpretation of Windows 95. It uses 3–4 logical-point theme radii and IBM Plex fonts, rather than uniformly square corners and a historical bitmap font. Source details and component-specific exceptions are recorded in [the research note](solidcraft-95-sources.md).
 
@@ -21,7 +21,7 @@ The source is a contemporary interpretation of Windows 95. It uses 3–4 logical
 
 ## Implementation sequence
 
-1. **Register and persist the theme.** `THEME_IDS` in `src/theme.ts` defines accepted IDs, the derived `ThemePreference` type and the Settings choices. Settings provides exhaustive labels/icons and uses the existing Lucide monitor icon for Windows 95. Automatic still maps to OS light/dark.
+1. **Register and persist the theme.** `THEME_IDS` in `src/theme.ts` defines accepted IDs, the derived `ThemePreference` type and the Settings choices. Settings provides exhaustive labels/icons and uses the existing Lucide monitor icon for Meridian 95. Automatic still maps to OS light/dark.
 2. **Add a scoped stylesheet.** Create `src/styles/windows-95.css`, imported after `mac.css` in `src/main.tsx`. Put all new rules under `[data-theme="windows-95"]`; define every relevant existing palette token, `color-scheme: light`, text/selected ink, font, radii and bevel tokens. Do not rely on `--radius` alone: many existing component radii are literal values. Scope any new font assets to this theme if later added.
 3. **Style the actual shell and common controls.** Cover `.mac-sidebar`, `.mac-toolbar`, `.mac-inspector`, `.glass`, search/filter controls, `.seg`, theme choices, buttons, fields, menus and popovers. These `mac-*` classes are Meridian's active cross-platform shell. Keep its floating sidebar geometry initially; replace translucent faces and rounded pills with opaque beveled surfaces. Use inset shadows or non-interactive pseudo-elements to avoid changing layout or obscuring hit targets. Preserve circular controls when the shape communicates their purpose.
 4. **Complete all pages and overlays.** Audit Library grid/list selection, Collections, Reading, Statistics, Settings, inspector, book editor, confirmation/duplicate dialogs, toasts and empty/loading/error states. Override hardcoded warm colors, gradients, rounded badges and hover lift where they conflict with this theme. Use white content wells and silver framing; avoid beveling each book cover. Ensure selected-state descendants do not retain navy accent ink on navy backgrounds.

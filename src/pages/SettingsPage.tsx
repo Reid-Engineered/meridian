@@ -12,7 +12,7 @@ const themeLabels: Record<ThemePreference, { label: string; icon: typeof Sun }> 
   strawberry: { label: "Strawberry", icon: Heart },
   mocha: { label: "Mocha", icon: Coffee },
   ube: { label: "Ube", icon: Sparkles },
-  "windows-95": { label: "Windows 95", icon: Monitor }
+  "windows-95": { label: "Meridian 95", icon: Monitor }
 };
 const themes = THEME_IDS.map(value => ({ value, ...themeLabels[value] }));
 
