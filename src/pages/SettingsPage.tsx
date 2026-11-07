@@ -3,17 +3,18 @@ import { useEffect, useState } from "react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { libraryService } from "../services/library";
 import type { AppInfo, BackupFileSelection, CoverStorage } from "../types";
-import type { ThemePreference } from "../theme";
+import { THEME_IDS, type ThemePreference } from "../theme";
 
-const themes: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "Automatic", icon: Monitor },
-  { value: "strawberry", label: "Strawberry", icon: Heart },
-  { value: "mocha", label: "Mocha", icon: Coffee },
-  { value: "ube", label: "Ube", icon: Sparkles },
-  { value: "windows-95", label: "Windows 95", icon: Monitor }
-];
+const themeLabels: Record<ThemePreference, { label: string; icon: typeof Sun }> = {
+  light: { label: "Light", icon: Sun },
+  dark: { label: "Dark", icon: Moon },
+  system: { label: "Automatic", icon: Monitor },
+  strawberry: { label: "Strawberry", icon: Heart },
+  mocha: { label: "Mocha", icon: Coffee },
+  ube: { label: "Ube", icon: Sparkles },
+  "windows-95": { label: "Windows 95", icon: Monitor }
+};
+const themes = THEME_IDS.map(value => ({ value, ...themeLabels[value] }));
 
 export function SettingsPage({theme,onTheme,info,onExport,onReset,onRestored}:{theme:ThemePreference;onTheme:(t:ThemePreference)=>void;info:AppInfo|null;onExport:()=>Promise<void>;onReset:()=>void;onRestored:()=>Promise<void>}){
   const native='__TAURI_INTERNALS__' in window;

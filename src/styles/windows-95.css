@@ -17,7 +17,7 @@
   --border-soft: #a0a0a0;
   --accent: #000080;
   --accent-hover: #000060;
-  --accent-soft: #c0c0c0;
+  --accent-soft: #dfdfdf;
   --accent-ink: #fff;
   --accent-text: #000080;
   --blue: #000080;
@@ -102,11 +102,20 @@
   border-radius: 3px;
   box-shadow: var(--bevel-raised);
 }
+/* The default action keeps its silver face, with a separate black outer edge. */
+[data-theme="windows-95"] :is(.btn.primary, .button.primary, .add-round) {
+  border: 1px solid #000;
+}
+[data-theme="windows-95"] .capsule.is-active {
+  color: var(--accent-text);
+  font-weight: 700;
+}
 [data-theme="windows-95"] :is(.btn, .button, .icon-button, .capsule, .add-round,
   .round, .theme-choice button, .seg button, .form-tabs button, .isbn-lookup button):hover:not(:disabled) {
   background: #dfdfdf;
   color: var(--text);
 }
+[data-theme="windows-95"] .capsule.is-active:hover:not(:disabled) { color: var(--accent-text); }
 [data-theme="windows-95"] :is(.seg button.on, .theme-choice button.active,
   .form-tabs button.active, .capsule[aria-expanded="true"]) {
   background: var(--accent);
@@ -124,6 +133,7 @@
   color: var(--accent-ink);
   box-shadow: var(--bevel-recessed);
 }
+[data-theme="windows-95"] .capsule.is-active:active:not(:disabled) { color: var(--accent-ink); }
 [data-theme="windows-95"] :is(.button.danger, .btn.danger) {
   background: var(--danger);
   color: #fff;
@@ -150,8 +160,7 @@
 }
 [data-theme="windows-95"] :is(input, textarea) { accent-color: var(--accent); }
 [data-theme="windows-95"] input::placeholder { color: #404040; opacity: 1; }
-[data-theme="windows-95"] :is(.global-search, .isbn-lookup) input { box-shadow: none; }
-[data-theme="windows-95"] .mac-toolbar .global-search:focus-within {
+[data-theme="windows-95"] :is(.mac-toolbar .global-search, .isbn-lookup):focus-within {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   box-shadow: var(--bevel-recessed);
@@ -191,6 +200,7 @@
 [data-theme="windows-95"] :is(.lib-cover, .insp-cover, .detail-cover, .cover-wrap) {
   box-shadow: 1px 1px 0 #808080;
 }
+[data-theme="windows-95"] .book-card.grid:hover .cover-wrap { box-shadow: 1px 1px 0 #808080; }
 [data-theme="windows-95"] :is(.cover-placeholder, .lib-cover-blank, .collection-placeholder) {
   background: #dfdfdf;
   color: #000;
@@ -220,18 +230,31 @@
   box-shadow: var(--bevel-raised);
 }
 [data-theme="windows-95"] .window-controls button:hover { background: #dfdfdf; color: #000; }
+[data-theme="windows-95"] .window-controls .window-close:hover { background: #c42b1c; color: #fff; }
 [data-theme="windows-95"] .window-controls button:active { box-shadow: var(--bevel-recessed); }
 
 /* A black/white focus ring remains distinct on both silver and navy faces.
  * Keep the control's directional edges inside that ring. */
-[data-theme="windows-95"] :is(button, input, select, textarea, [tabindex]):focus-visible {
+[data-theme="windows-95"] :is(.btn, .button, .icon-button, .capsule, .add-round,
+  .round, .theme-choice button, .seg button, .form-tabs button, .isbn-lookup button,
+  .sb-row.active, .sb-now, .lib-continue-card, .reading-feature):focus-visible {
   outline: 2px solid #000;
   outline-offset: 2px;
   box-shadow: var(--bevel-raised), 0 0 0 4px #fff;
 }
-[data-theme="windows-95"] :is(input, select, textarea, .seg button.on,
-  .theme-choice button.active, .form-tabs button.active):focus-visible {
+[data-theme="windows-95"] :is(input, select, textarea):focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
   box-shadow: var(--bevel-recessed), 0 0 0 4px #fff;
+}
+[data-theme="windows-95"] :is(.seg button.on, .theme-choice button.active,
+  .form-tabs button.active, .sb-row.active, .capsule[aria-expanded="true"]):focus-visible {
+  box-shadow: var(--bevel-recessed), 0 0 0 4px #fff;
+}
+/* The containing well owns focus for these compound inputs, not the inner input. */
+[data-theme="windows-95"] :is(.global-search, .isbn-lookup) input {
+  outline: none;
+  box-shadow: none;
 }
 [data-theme="windows-95"] .window-controls button:focus-visible {
   outline: 1px dotted #000;

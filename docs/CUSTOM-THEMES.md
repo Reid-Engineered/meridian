@@ -8,7 +8,9 @@ light/dark changes. Automatic continues to select Light or Dark.
 
 The theme adapts SolidCraft 95's silver faces, navy/white selections, recessed
 white fields, raised controls and subtle 3–4px corners. Existing layout, button
-hit areas, library artwork and official branding remain. It uses local Tahoma /
+hit areas and library artwork remain. Its sidebar replaces the standard wordmark
+with an original pixel-grid open-book logo and outlined bitmap MERIDIAN lettering;
+other themes retain the official wordmarks. It uses local Tahoma /
 Segoe UI fonts; no IBM Plex files are bundled. CSS uses two 1px bevel bands as an
 adaptation of upstream's two 0.5 logical-point bands. Glass blur and broad soft
 shadows are removed only within this theme. Keyboard focus is distinct from
@@ -30,10 +32,34 @@ An isolated headless Chrome render of the production bundle checked theme
 selection/color, switching back, and Settings horizontal page overflow at
 100/125/150/200% equivalent viewport scales. Library grid/list, Reading,
 Collections, Statistics, Settings, filters, inspector and book-editor screenshots
-were visually inspected. This is browser evidence,
-not native WebView2 or installed-app qualification. Hands-on caption interaction,
-native scaling, screen readers and macOS/Linux rendering remain unverified.
-Installers were not rebuilt for this frontend-only change.
+were visually inspected. That initial browser evidence did not qualify native
+WebView2 or installed-app behavior, and installers were not rebuilt at that
+stage. The native review follow-up below records the subsequent Windows checks.
+
+### Review follow-up verification
+
+The review follow-up narrows bevel focus rings to beveled controls, preserves
+recessed focus for selected/expanded controls, and gives compound search/ISBN
+fields one focus indicator on their containing well. Applied filters use navy
+text, default actions have a black outer border, Close hover is red/white,
+cover hover shadows stay flat, and Statistics icon circles use light gray.
+`THEME_IDS` now supplies the accepted IDs, derived type and Settings options;
+labels/icons are exhaustively checked against that type.
+
+`npm run verify -- --quick` passed 73 frontend tests, 32 Rust tests, the TypeScript
+check/production build and all four isolated catalog fixtures. A separate
+`npm run build:desktop -- --smoke` produced the isolated Windows test build and
+NSIS bundle. The current frontend was exercised in its native WebView2 window
+against marked test storage, not the personal library: mouse and keyboard
+navigation through the sidebar, Sort, Filter, toolbar search, suggestions and
+ISBN controls; applying a Reading filter; opening/canceling new/existing book
+editors; grid-cover and Close hover; and Statistics icon contrast. Computed
+styles confirmed flat menu focus, recessed selected/expanded focus, no outline
+or shadow on inner search/ISBN inputs, the Save default border, flat cover
+shadows and `#c42b1c`/white Close hover. These were native executable checks;
+installer installation/upgrade, comprehensive scaling, screen readers and
+macOS/Linux rendering were not requalified. Local evidence is under
+`verification/windows95-review-native/` (not committed).
 
 ## Earlier custom themes
 
