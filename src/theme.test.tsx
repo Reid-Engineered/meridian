@@ -5,7 +5,7 @@ import { readThemePreference, resolveTheme, useTheme } from "./theme";
 
 afterEach(() => { cleanup(); localStorage.clear(); delete document.documentElement.dataset.theme; });
 
-it.each(["strawberry", "mocha", "ube"] as const)("restores and applies %s independently of the system theme", preference => {
+it.each(["strawberry", "mocha", "ube", "windows-95"] as const)("restores and applies %s independently of the system theme", preference => {
   localStorage.setItem("meridian-theme", preference);
   expect(readThemePreference()).toBe(preference);
   expect(resolveTheme(preference, true)).toBe(preference);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 /** Appearance preference. "system" follows the operating system's light/dark setting. */
-export type ThemePreference = "light" | "dark" | "system" | "strawberry" | "mocha" | "ube";
+export type ThemePreference = "light" | "dark" | "system" | "strawberry" | "mocha" | "ube" | "windows-95";
 
 const KEY = "meridian-theme";
 const query = () => (typeof window.matchMedia === "function" ? window.matchMedia("(prefers-color-scheme: dark)") : null);
@@ -9,7 +9,7 @@ const query = () => (typeof window.matchMedia === "function" ? window.matchMedia
 export function readThemePreference(): ThemePreference {
   try {
     const stored = localStorage.getItem(KEY);
-    const valid = ["light", "dark", "system", "strawberry", "mocha", "ube"];
+    const valid = ["light", "dark", "system", "strawberry", "mocha", "ube", "windows-95"];
     return valid.includes(stored as string) ? (stored as ThemePreference) : "system";
   } catch {
     return "system";

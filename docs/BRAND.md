@@ -1,5 +1,12 @@
 # Official Meridian logo
 
+The Windows 95 theme uses `public/brand/meridian-logo-retro.svg` in the sidebar:
+an original pixel-grid open book with navy outlines, teal binding and ivory
+pages, paired with a custom bitmap-style MERIDIAN wordmark. The letters are
+vector paths, so this treatment needs no font downloads or installed retro
+font. Other themes retain the canonical wordmarks. Desktop icons and caption
+branding are unchanged.
+
 Adopted October 9, 2026: an open-book M with a vertical meridian spine, in copper and parchment. Canonical wordmarks and transparent symbols are in `public/brand/`; the icon uses a charcoal rounded square. Wordmarks are vector outlines and need no installed fonts.
 
 The sidebar switches wordmarks with the resolved theme. The Windows caption keeps the existing native window operations, layout, drag region and accessibility behavior; its icon comes from `public/favicon.svg`.

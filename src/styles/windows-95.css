@@ -1,0 +1,241 @@
+/* Adapted from SolidCraft 95, © 2026 SolidCraft contributors (MIT).
+ * See THIRD_PARTY_NOTICES.md. Loaded last; all overrides are theme-scoped.
+ * CSS uses 1px bevel bands for whole-pixel edges instead of egui's 0.5pt bands.
+ */
+[data-theme="windows-95"] {
+  color-scheme: light;
+  --font-ui: Tahoma, "Segoe UI", sans-serif;
+  --serif: var(--font-ui);
+  --bg: #c0c0c0;
+  --sidebar: #c0c0c0;
+  --surface: #fff;
+  --elevated: #c0c0c0;
+  --text: #000;
+  --muted: #404040;
+  --faint: #404040;
+  --border: #808080;
+  --border-soft: #a0a0a0;
+  --accent: #000080;
+  --accent-hover: #000060;
+  --accent-soft: #c0c0c0;
+  --accent-ink: #fff;
+  --accent-text: #000080;
+  --blue: #000080;
+  --green: #008000;
+  --gold: #705000;
+  --danger: #800000;
+  --fill: #dfdfdf;
+  --fill2: #c0c0c0;
+  --glass: #c0c0c0;
+  --glass-border: #808080;
+  --panel: #c0c0c0;
+  --radius: 4px;
+  --status-want: #000080;
+  --status-unread: #404040;
+  --status-reading: #805000;
+  --status-finished: #008000;
+  --status-dnf: #800000;
+  --bevel-raised: inset 1px 1px #fff, inset -1px -1px #000,
+    inset 2px 2px #dfdfdf, inset -2px -2px #808080;
+  --bevel-recessed: inset 1px 1px #808080, inset -1px -1px #fff,
+    inset 2px 2px #000, inset -2px -2px #dfdfdf;
+  --glass-shadow: var(--bevel-raised);
+  --float-shadow: var(--bevel-raised);
+  --shadow: var(--bevel-raised), 2px 2px 0 #404040;
+  font-family: var(--font-ui);
+}
+
+/* Opaque chrome retains the established layout and hit areas. */
+[data-theme="windows-95"] .sidebar-brand :is(.sidebar-logo-light, .sidebar-logo-dark) { display: none; }
+[data-theme="windows-95"] .sidebar-brand .sidebar-logo-retro {
+  display: block;
+  width: 184px;
+  max-width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+[data-theme="windows-95"] :is(.mac-sidebar, .mac-inspector, .mac-menu, .mac-popover,
+  .book-form, .confirm-dialog, .small-modal, .collection-drawer, .duplicate-review,
+  .settings-card, .chart-card, .stat-cards article, .collection-card, .reading-feature) {
+  border: 0;
+  border-radius: 4px;
+  background: var(--bg);
+  box-shadow: var(--bevel-raised);
+  backdrop-filter: none;
+}
+[data-theme="windows-95"] .mac-toolbar { background: var(--bg); }
+[data-theme="windows-95"] :is(.glass, .sb-now, .lib-continue-card) {
+  background: var(--bg);
+  border-color: transparent;
+  border-radius: 3px;
+  box-shadow: var(--bevel-raised);
+}
+[data-theme="windows-95"] :is(.insp-group, .path-card, .cover-editor, .reading-progress,
+  .field-grid fieldset, .checkbox-grid label, .tag-row span, .insp-tags span, .status,
+  .theme-choice, .chip, .lib-table td:first-child, .lib-table td:last-child) { border-radius: 3px; }
+[data-theme="windows-95"] :is(.settings-card > header, .form-header, .drawer-header, .pop-head) {
+  border-bottom-color: var(--border);
+}
+[data-theme="windows-95"] :is(.library-page, .collections-page, .reading-page, .statistics-page) {
+  background: var(--surface);
+}
+[data-theme="windows-95"] :is(.lib-grid, .lib-table-wrap, .insp-group, .path-card) {
+  background: var(--surface);
+}
+[data-theme="windows-95"] .insp-group { border: 1px solid var(--border); }
+[data-theme="windows-95"] .modal-backdrop {
+  background: rgba(0, 0, 0, .32);
+  backdrop-filter: none;
+}
+[data-theme="windows-95"] .form-scroll { background: var(--bg); }
+[data-theme="windows-95"] .collection-collage { background: #dfdfdf; }
+[data-theme="windows-95"] .collection-collage > svg { color: #404040; }
+[data-theme="windows-95"] :is(.reading-empty, .compact-books button) { border-radius: 3px; }
+[data-theme="windows-95"] .reading-feature:hover { box-shadow: var(--bevel-raised); }
+
+/* Raised action faces; selected segments and expanded triggers are recessed. */
+[data-theme="windows-95"] :is(.btn, .button, .icon-button, .capsule, .add-round,
+  .round, .theme-choice button, .seg button, .form-tabs button, .isbn-lookup button) {
+  background: var(--bg);
+  color: var(--text);
+  border: 0;
+  border-radius: 3px;
+  box-shadow: var(--bevel-raised);
+}
+[data-theme="windows-95"] :is(.btn, .button, .icon-button, .capsule, .add-round,
+  .round, .theme-choice button, .seg button, .form-tabs button, .isbn-lookup button):hover:not(:disabled) {
+  background: #dfdfdf;
+  color: var(--text);
+}
+[data-theme="windows-95"] :is(.seg button.on, .theme-choice button.active,
+  .form-tabs button.active, .capsule[aria-expanded="true"]) {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--bevel-recessed);
+}
+[data-theme="windows-95"] :is(.seg button.on, .theme-choice button.active,
+  .form-tabs button.active, .capsule[aria-expanded="true"]):hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+[data-theme="windows-95"] :is(.btn, .button, .icon-button, .capsule, .add-round,
+  .round, .theme-choice button, .seg button, .form-tabs button, .isbn-lookup button):active:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--bevel-recessed);
+}
+[data-theme="windows-95"] :is(.button.danger, .btn.danger) {
+  background: var(--danger);
+  color: #fff;
+}
+[data-theme="windows-95"] :is(.button.danger, .btn.danger):hover:not(:disabled) {
+  background: #600000;
+  color: #fff;
+}
+[data-theme="windows-95"] .button.danger-quiet { color: var(--danger); }
+[data-theme="windows-95"] .button.danger-quiet:active:not(:disabled) { color: #fff; }
+[data-theme="windows-95"] button:disabled { opacity: .6; cursor: not-allowed; }
+[data-theme="windows-95"] :is(.seg, .theme-choice) { gap: 3px; }
+[data-theme="windows-95"] .theme-choice { justify-content: flex-start; }
+
+/* Search and form inputs use white, recessed wells; checkboxes stay native. */
+[data-theme="windows-95"] :is(.mac-toolbar .global-search, .isbn-lookup,
+  .field-grid input:not([type="checkbox"]), .field-grid select, .field-grid textarea,
+  .small-modal input, .small-modal textarea, .popup select, .cover-editor input) {
+  background: #fff;
+  color: #000;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  box-shadow: var(--bevel-recessed);
+}
+[data-theme="windows-95"] :is(input, textarea) { accent-color: var(--accent); }
+[data-theme="windows-95"] input::placeholder { color: #404040; opacity: 1; }
+[data-theme="windows-95"] :is(.global-search, .isbn-lookup) input { box-shadow: none; }
+[data-theme="windows-95"] .mac-toolbar .global-search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: var(--bevel-recessed);
+}
+[data-theme="windows-95"] :is(.field-grid input, .field-grid select, .field-grid textarea,
+  .small-modal input, .small-modal textarea):focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: var(--bevel-recessed);
+}
+
+/* Selection ink is explicit so accent-colored descendants stay legible. */
+[data-theme="windows-95"] .sb-row { border-radius: 3px; }
+[data-theme="windows-95"] .sb-row:hover { background: #dfdfdf; }
+[data-theme="windows-95"] .sb-row.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--bevel-recessed);
+}
+[data-theme="windows-95"] .sb-row.active :is(svg, .sb-count) { color: #fff; }
+[data-theme="windows-95"] .menu-item { border-radius: 3px; }
+[data-theme="windows-95"] .menu-item:is(:hover, :focus, .is-active) {
+  background: var(--accent);
+  color: #fff;
+}
+[data-theme="windows-95"] .lib-tile { border-radius: 3px; }
+[data-theme="windows-95"] .lib-tile.is-selected :is(.lib-title, .lib-meta) {
+  background: var(--accent);
+  color: #fff;
+}
+[data-theme="windows-95"] .lib-table tr.is-selected td { background: var(--accent); }
+[data-theme="windows-95"] .lib-table tr.is-selected td * { color: #fff; }
+[data-theme="windows-95"] .lib-table tr.is-selected .status-dot { background: #fff; }
+[data-theme="windows-95"] :is(.lib-tile:hover .lib-cover, .collection-card:hover, .book-card.grid:hover .cover-wrap) {
+  transform: none;
+}
+[data-theme="windows-95"] :is(.lib-cover, .insp-cover, .detail-cover, .cover-wrap) {
+  box-shadow: 1px 1px 0 #808080;
+}
+[data-theme="windows-95"] :is(.cover-placeholder, .lib-cover-blank, .collection-placeholder) {
+  background: #dfdfdf;
+  color: #000;
+}
+[data-theme="windows-95"] :is(.meter, .progress-track, .bars i, .bars b, .activity-chart b) { border-radius: 0; }
+[data-theme="windows-95"] .status { background: #dfdfdf; color: #000; }
+[data-theme="windows-95"] .status-reading { background: #ffffc0; color: #604000; }
+[data-theme="windows-95"] .status-finished { background: #c0dcc0; color: #004000; }
+[data-theme="windows-95"] .status-want-to-read { background: #dfdfff; color: #000080; }
+[data-theme="windows-95"] .status-did-not-finish { background: #ffd0d0; color: #800000; }
+[data-theme="windows-95"] .form-error { background: #ffffc0; color: #800000; border: 1px solid #800000; border-radius: 3px; }
+[data-theme="windows-95"] .toast {
+  background: #ffffc0;
+  color: #000;
+  border: 1px solid #000;
+  border-radius: 3px;
+  backdrop-filter: none;
+  box-shadow: 2px 2px 0 #808080;
+}
+
+/* Preserve native operations and the established 32px Windows caption geometry. */
+[data-theme="windows-95"] .window-chrome { background: #000080; color: #fff; }
+[data-theme="windows-95"] .window-brand { color: #fff; font-weight: 700; }
+[data-theme="windows-95"] .window-controls button {
+  background: #c0c0c0;
+  color: #000;
+  box-shadow: var(--bevel-raised);
+}
+[data-theme="windows-95"] .window-controls button:hover { background: #dfdfdf; color: #000; }
+[data-theme="windows-95"] .window-controls button:active { box-shadow: var(--bevel-recessed); }
+
+/* A black/white focus ring remains distinct on both silver and navy faces.
+ * Keep the control's directional edges inside that ring. */
+[data-theme="windows-95"] :is(button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+  box-shadow: var(--bevel-raised), 0 0 0 4px #fff;
+}
+[data-theme="windows-95"] :is(input, select, textarea, .seg button.on,
+  .theme-choice button.active, .form-tabs button.active):focus-visible {
+  box-shadow: var(--bevel-recessed), 0 0 0 4px #fff;
+}
+[data-theme="windows-95"] .window-controls button:focus-visible {
+  outline: 1px dotted #000;
+  outline-offset: -5px;
+  box-shadow: var(--bevel-raised);
+}
+[data-theme="windows-95"] ::selection { background: #000080; color: #fff; }
