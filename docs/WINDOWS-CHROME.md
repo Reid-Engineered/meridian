@@ -1,5 +1,11 @@
 # Windows window chrome
 
+The optional Meridian 95 theme styles the existing 32px caption navy with white
+title text and silver raised caption buttons. Its scoped stylesheet changes
+appearance only; native operations, drag regions and control sizes remain as
+described below. The November 6 frontend checks include the existing window
+tests; native interaction and scaling have not been requalified for this theme.
+
 Windows builds replace the system caption with a 32px title strip in the app's existing light/dark colors. The strip has conventional Windows minimize, maximize/restore and close glyphs. There are no imitation macOS traffic lights. macOS and Linux retain their configured system decorations, and browser preview does not display native window controls.
 
 `src-tauri/src/lib.rs` disables decorations in the Windows context before the window is created. React renders `WindowChrome` only in a Windows Tauri WebView. `src/services/window.ts` owns native window operations; these remain separate from catalog commands. The main-window capability grants minimize, toggle-maximize and close. Existing Tauri drag regions support dragging and double-click maximize/restore. The app remains resizable.
