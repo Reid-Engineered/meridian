@@ -103,8 +103,12 @@
   box-shadow: var(--bevel-raised);
 }
 /* The default action keeps its silver face, with a separate black outer edge. */
+/* Drawn as an extra shadow ring so default actions keep the same box size. */
 [data-theme="windows-95"] :is(.btn.primary, .button.primary, .add-round) {
-  border: 1px solid #000;
+  box-shadow: var(--bevel-raised), 0 0 0 1px #000;
+}
+[data-theme="windows-95"] :is(.btn.primary, .button.primary, .add-round):active:not(:disabled) {
+  box-shadow: var(--bevel-recessed), 0 0 0 1px #000;
 }
 [data-theme="windows-95"] .capsule.is-active {
   color: var(--accent-text);

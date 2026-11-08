@@ -1,10 +1,10 @@
 # SolidCraft 95: first-party source research
 
-Researched 2026-11-06. Upstream snapshot: `871014f955a76fd308ce156e68c93e6372906005` (main when fetched). Research only; no Meridian implementation or implementation plan. Read applicable `theme-integration/AGENTS.md`; no additional AGENTS.md found under docs.
+Researched 2026-11-06. Upstream snapshot: `871014f955a76fd308ce156e68c93e6372906005` (main when fetched).
 
 ## Evidence and scope
 
-The [UI-kit docs](https://docs.solidcraft.io/dev/ui-kit.html) and [theme JSON][theme] were accessible. Geometry and behavior below come from source at the pinned revision, rather than inferred Windows 95 conventions. Docs are live and unversioned. An initial PowerShell web request failed locally; retrying with `-UseBasicParsing` retrieved the source successfully. No required text evidence remained inaccessible. No running SolidCraft instance, screenshot comparison, or display-scale validation was performed; raster appearance is unverified.
+The [UI-kit docs](https://docs.solidcraft.io/dev/ui-kit.html) and [theme JSON][theme] were accessible. Geometry and behavior below come from source at the pinned revision, rather than inferred Windows 95 conventions. Docs are live and unversioned. No running SolidCraft instance, screenshot comparison, or display-scale validation was performed; raster appearance is unverified.
 
 ## Palette
 

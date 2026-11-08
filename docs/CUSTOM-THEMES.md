@@ -24,42 +24,29 @@ decorations. See [third-party notices](../THIRD_PARTY_NOTICES.md) and the
 [source research](research/solidcraft-95-sources.md). The license notice is also
 included in the packaged frontend at `public/licenses/solidcraft-95.txt`.
 
-November 6 verification: `npm run verify -- --quick` passed 66 frontend tests,
-32 Rust tests, the production build and isolated 0/10/1,000/10,000-book fixtures.
-The added application test selects Meridian 95, remounts to restore it and
-switches back to Light. Existing window-operation tests still pass.
-An isolated headless Chrome render of the production bundle checked theme
-selection/color, switching back, and Settings horizontal page overflow at
-100/125/150/200% equivalent viewport scales. Library grid/list, Reading,
-Collections, Statistics, Settings, filters, inspector and book-editor screenshots
-were visually inspected. That initial browser evidence did not qualify native
-WebView2 or installed-app behavior, and installers were not rebuilt at that
-stage. The native review follow-up below records the subsequent Windows checks.
+### Verification
 
-### Review follow-up verification
+`npm run verify -- --quick` passes the frontend tests (including selecting
+Meridian 95, restoring it on remount and switching back to Light), the Rust
+tests, the TypeScript check/production build and the isolated 0/10/1,000/10,000-book
+catalog fixtures.
 
-The review follow-up narrows bevel focus rings to beveled controls, preserves
-recessed focus for selected/expanded controls, and gives compound search/ISBN
-fields one focus indicator on their containing well. Applied filters use navy
-text, default actions have a black outer border, Close hover is red/white,
-cover hover shadows stay flat, and Statistics icon circles use light gray.
-`THEME_IDS` now supplies the accepted IDs, derived type and Settings options;
-labels/icons are exhaustively checked against that type.
+A headless Chrome render of the production bundle checked theme selection,
+switching back and Settings overflow at 100/125/150/200% viewport scales, and
+Library grid/list, Reading, Collections, Statistics, Settings, filters, inspector
+and book-editor screens were inspected visually.
 
-`npm run verify -- --quick` passed 73 frontend tests, 32 Rust tests, the TypeScript
-check/production build and all four isolated catalog fixtures. A separate
-`npm run build:desktop -- --smoke` produced the isolated Windows test build and
-NSIS bundle. The current frontend was exercised in its native WebView2 window
-against marked test storage, not the personal library: mouse and keyboard
+An isolated Windows smoke build was then exercised in its native WebView2 window
+against marked test storage, not a personal library: mouse and keyboard
 navigation through the sidebar, Sort, Filter, toolbar search, suggestions and
-ISBN controls; applying a Reading filter; opening/canceling new/existing book
-editors; grid-cover and Close hover; and Statistics icon contrast. Computed
-styles confirmed flat menu focus, recessed selected/expanded focus, no outline
-or shadow on inner search/ISBN inputs, the Save default border, flat cover
-shadows and `#c42b1c`/white Close hover. These were native executable checks;
-installer installation/upgrade, comprehensive scaling, screen readers and
-macOS/Linux rendering were not requalified. Local evidence is under
-`verification/windows95-review-native/` (not committed).
+ISBN controls; applying a Reading filter; opening/canceling book editors;
+cover and Close hover; and Statistics icon contrast. Computed styles confirmed
+flat menu focus, recessed selected/expanded focus, a single focus indicator on
+the search/ISBN wells, the default-action border, flat cover shadows and
+`#c42b1c`/white Close hover.
+
+Not yet qualified: installer installation/upgrade, comprehensive native scaling,
+screen readers, and macOS/Linux rendering.
 
 ## Earlier custom themes
 

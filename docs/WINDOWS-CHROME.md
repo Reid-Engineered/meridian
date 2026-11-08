@@ -3,8 +3,8 @@
 The optional Meridian 95 theme styles the existing 32px caption navy with white
 title text and silver raised caption buttons. Its scoped stylesheet changes
 appearance only; native operations, drag regions and control sizes remain as
-described below. The November 6 frontend checks include the existing window
-tests; native interaction and scaling have not been requalified for this theme.
+described below. Existing window tests pass with the theme; native scaling has
+not been requalified for it.
 
 Windows builds replace the system caption with a 32px title strip in the app's existing light/dark colors. The strip has conventional Windows minimize, maximize/restore and close glyphs. There are no imitation macOS traffic lights. macOS and Linux retain their configured system decorations, and browser preview does not display native window controls.
 
