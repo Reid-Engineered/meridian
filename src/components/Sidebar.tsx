@@ -32,6 +32,7 @@ export function Sidebar({ page, scope, total, statusCounts, collections, nowRead
     <div className="sidebar-brand">
       <img className="sidebar-logo-light" src="/brand/meridian-logo.svg" alt="Meridian" width="158" height="43"/>
       <img className="sidebar-logo-dark" src="/brand/meridian-logo-dark.svg" alt="Meridian" width="158" height="43"/>
+      <img className="sidebar-logo-retro" src="/brand/meridian-logo-retro.svg" alt="Meridian" width="184" height="40"/>
     </div>
     <nav aria-label="Library">
       <Row icon={LibraryBig} label="All Books" count={total} active={inLibrary && scope.kind === "all"} onClick={() => onNavigate("library", { kind: "all" })} />
