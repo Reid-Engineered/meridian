@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BookForm } from "./components/BookForm";
 import { BookInspector } from "./components/BookInspector";
 import { ConfirmDialog } from "./components/ConfirmDialog";
-import { BrandLogo, Sidebar, type Page, type Scope } from "./components/Sidebar";
+import { Sidebar, type Page, type Scope } from "./components/Sidebar";
 import { Toolbar } from "./components/Toolbar";
 import { WindowChrome } from "./components/WindowChrome";
 import { windowService } from "./services/window";
@@ -58,9 +58,8 @@ export default function App(){
 
   const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} logoPosition={logo.position} onLogoPosition={logo.setPosition} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
   return <><WindowChrome /><div className={`mac-shell${selected?" has-inspector":""}${windowService.hasCustomChrome()?" windows-shell":""}`}>
-    <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected} showLogo={logo.position==="sidebar"}/>
+    <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected} logoCentered={logo.position==="centered"}/>
     <main className="mac-content">
-      {logo.position==="centered"&&<BrandLogo className="main-brand"/>}
       <Toolbar title={head.title} subtitle={head.subtitle} onAdd={openAdd}>
         {page==="library"&&allBooks.length>0&&<LibraryToolbarActions query={query} onQuery={setQuery} view={view} onView={v=>{setView(v);try{localStorage.setItem("meridian-view",v)}catch{/* view stays in memory */}}}
           collections={collections} shown={books.length} total={allBooks.length} allBooks={allBooks} onOpen={setSelected}/>}

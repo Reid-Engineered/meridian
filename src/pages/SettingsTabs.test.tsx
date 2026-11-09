@@ -7,7 +7,7 @@ import App from '../App';
 
 beforeEach(()=>{vi.spyOn(libraryService,'getCoverStorage').mockResolvedValue({files:0,bytes:0});});
 afterEach(()=>{cleanup();vi.restoreAllMocks();localStorage.clear();});
-const page=(props:Partial<Parameters<typeof SettingsPage>[0]>={})=>render(<SettingsPage theme="light" onTheme={()=>{}} logoPosition="sidebar" onLogoPosition={()=>{}} info={null} onExport={vi.fn()} onReset={()=>{}} onRestored={vi.fn()} {...props}/>);
+const page=(props:Partial<Parameters<typeof SettingsPage>[0]>={})=>render(<SettingsPage theme="light" onTheme={()=>{}} logoPosition="left" onLogoPosition={()=>{}} info={null} onExport={vi.fn()} onReset={()=>{}} onRestored={vi.fn()} {...props}/>);
 
 it('shows one section at a time and switches with tabs and arrow keys',()=>{
   page();
@@ -29,26 +29,23 @@ it('shows one section at a time and switches with tabs and arrow keys',()=>{
 it('reports the chosen logo position',()=>{
   const onLogoPosition=vi.fn();page({onLogoPosition});
   const group=screen.getByRole('group',{name:'Logo position'});
-  expect(within(group).getByRole('button',{name:/In the sidebar/}).getAttribute('aria-pressed')).toBe('true');
+  expect(within(group).getByRole('button',{name:/Left/}).getAttribute('aria-pressed')).toBe('true');
   fireEvent.click(within(group).getByRole('button',{name:/Centered/}));
   expect(onLogoPosition).toHaveBeenCalledWith('centered');
 });
 
-it('moves the logo between the sidebar and the main screen and remembers it',async()=>{
+it('centers the logo in the sidebar and remembers it',async()=>{
   localStorage.clear();
   const app=render(<App/>);
   await screen.findByRole('button',{name:'Open Dune'});
-  const sidebar=()=>screen.getByRole('complementary',{name:'Sidebar'});
-  const main=()=>document.querySelector('main.mac-content') as HTMLElement;
-  expect(within(sidebar()).getAllByAltText('Meridian').length).toBeGreaterThan(0);
-  expect(main().querySelector('.main-brand')).toBeNull();
-  fireEvent.click(within(sidebar()).getByRole('button',{name:/Settings/}));
+  const brand=()=>screen.getByRole('complementary',{name:'Sidebar'}).querySelector('.sidebar-brand') as HTMLElement;
+  expect(brand().classList.contains('centered')).toBe(false);
+  fireEvent.click(within(screen.getByRole('complementary',{name:'Sidebar'})).getByRole('button',{name:/Settings/}));
   fireEvent.click(within(screen.getByRole('group',{name:'Logo position'})).getByRole('button',{name:/Centered/}));
-  expect(within(sidebar()).queryAllByAltText('Meridian')).toHaveLength(0);
-  expect(main().querySelector('.main-brand')).not.toBeNull();
+  expect(brand().classList.contains('centered')).toBe(true);
+  expect(document.querySelector('main .sidebar-brand')).toBeNull();
   app.unmount();
   render(<App/>);
   await screen.findByRole('button',{name:'Open Dune'});
-  expect(main().querySelector('.main-brand')).not.toBeNull();
-  expect(within(sidebar()).queryAllByAltText('Meridian')).toHaveLength(0);
+  expect(brand().classList.contains('centered')).toBe(true);
 });

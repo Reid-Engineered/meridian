@@ -46,8 +46,8 @@
 }
 
 /* Opaque chrome retains the established layout and hit areas. */
-[data-theme="windows-95"] .brand-logo :is(.sidebar-logo-light, .sidebar-logo-dark) { display: none; }
-[data-theme="windows-95"] .brand-logo .sidebar-logo-retro {
+[data-theme="windows-95"] .sidebar-brand :is(.sidebar-logo-light, .sidebar-logo-dark) { display: none; }
+[data-theme="windows-95"] .sidebar-brand .sidebar-logo-retro {
   display: block;
   width: 184px;
   max-width: 100%;

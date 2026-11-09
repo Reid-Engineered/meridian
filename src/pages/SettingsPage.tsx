@@ -1,4 +1,4 @@
-import { Check, Coffee, Database, Download, FolderOpen, Heart, Info, Monitor, Moon, PanelLeft, PanelTop, RotateCcw, Sparkles, Sun, Upload } from "lucide-react";
+import { Check, Coffee, Database, Download, FolderOpen, Heart, Info, Monitor, Moon, AlignCenter, AlignLeft, RotateCcw, Sparkles, Sun, Upload } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { libraryService } from "../services/library";
@@ -17,8 +17,8 @@ const themeLabels: Record<ThemePreference, { label: string; icon: typeof Sun }> 
 };
 const themes = THEME_IDS.map(value => ({ value, ...themeLabels[value] }));
 const logoPositions: { value: LogoPosition; label: string; icon: typeof Sun }[] = [
-  { value: "sidebar", label: "In the sidebar", icon: PanelLeft },
-  { value: "centered", label: "Centered", icon: PanelTop },
+  { value: "left", label: "Left", icon: AlignLeft },
+  { value: "centered", label: "Centered", icon: AlignCenter },
 ];
 
 type Tab = "appearance" | "library" | "backup" | "about";
@@ -68,7 +68,7 @@ export function SettingsPage({theme,onTheme,logoPosition,onLogoPosition,info,onE
     <div className="settings-tabs" role="tablist" aria-orientation="vertical" aria-label="Settings sections" onKeyDown={onTabKey}>{tabs.map(({id,label,icon:Icon})=><button key={id} ref={el=>{tabRefs.current[id]=el}} role="tab" id={`settings-tab-${id}`} aria-controls="settings-panel" aria-selected={tab===id} tabIndex={tab===id?0:-1} className="settings-tab" onClick={()=>setTab(id)}><Icon size={16} aria-hidden="true"/>{label}</button>)}</div>
     <section className="settings-column" role="tabpanel" id="settings-panel" aria-labelledby={`settings-tab-${tab}`}>
     {tab==='appearance'&&<>
-    <article className="settings-card"><header><span><Sun size={18}/></span><div><h3>Appearance</h3><p>Choose how Meridian looks on this device.</p></div></header><div className="setting-row"><div><strong>Theme</strong><small>Choose a named theme, or use Automatic to match your system.</small></div><div className="theme-choice" role="group" aria-label="Theme">{themes.map(({value,label,icon:Icon})=><button key={value} className={theme===value?"active":""} aria-pressed={theme===value} onClick={()=>onTheme(value)}><Icon size={16}/>{label}{theme===value&&<Check size={14}/>}</button>)}</div></div><div className="setting-row"><div><strong>Logo position</strong><small>Show the logo at the top of the sidebar, or centered above the main screen.</small></div><div className="theme-choice" role="group" aria-label="Logo position">{logoPositions.map(({value,label,icon:Icon})=><button key={value} className={logoPosition===value?"active":""} aria-pressed={logoPosition===value} onClick={()=>onLogoPosition(value)}><Icon size={16}/>{label}{logoPosition===value&&<Check size={14}/>}</button>)}</div></div></article>
+    <article className="settings-card"><header><span><Sun size={18}/></span><div><h3>Appearance</h3><p>Choose how Meridian looks on this device.</p></div></header><div className="setting-row"><div><strong>Theme</strong><small>Choose a named theme, or use Automatic to match your system.</small></div><div className="theme-choice" role="group" aria-label="Theme">{themes.map(({value,label,icon:Icon})=><button key={value} className={theme===value?"active":""} aria-pressed={theme===value} onClick={()=>onTheme(value)}><Icon size={16}/>{label}{theme===value&&<Check size={14}/>}</button>)}</div></div><div className="setting-row"><div><strong>Logo position</strong><small>Align the logo at the top of the sidebar to the left or center it.</small></div><div className="theme-choice" role="group" aria-label="Logo position">{logoPositions.map(({value,label,icon:Icon})=><button key={value} className={logoPosition===value?"active":""} aria-pressed={logoPosition===value} onClick={()=>onLogoPosition(value)}><Icon size={16}/>{label}{logoPosition===value&&<Check size={14}/>}</button>)}</div></div></article>
     </>}
     {tab==='library'&&<>
     <article className="settings-card"><header><span><Database size={18}/></span><div><h3>Library data</h3><p>Your catalog stays on this computer.</p></div></header><div className="path-card"><FolderOpen size={17}/><div><small>Database</small><code>{info?.databasePath||"Loading…"}</code></div></div><div className="path-card"><FolderOpen size={17}/><div><small>Cover storage</small><code>{info?.coversPath||"Loading…"}</code></div></div></article>

@@ -30,7 +30,7 @@ describe('theme preference', () => {
   it('offers Light, Dark and Automatic and reports the chosen preference', () => {
     vi.spyOn(libraryService, 'getCoverStorage').mockResolvedValue({ files: 0, bytes: 0 });
     const onTheme = vi.fn();
-    render(<SettingsPage theme="light" onTheme={onTheme} logoPosition="sidebar" onLogoPosition={vi.fn()} info={null} onExport={vi.fn()} onReset={() => {}} onRestored={vi.fn()} />);
+    render(<SettingsPage theme="light" onTheme={onTheme} logoPosition="left" onLogoPosition={vi.fn()} info={null} onExport={vi.fn()} onReset={() => {}} onRestored={vi.fn()} />);
     const group = screen.getByRole('group', { name: 'Theme' });
     for (const [label, preference] of [['Strawberry', 'strawberry'], ['Mocha', 'mocha'], ['Ube', 'ube'], ['Meridian 95', 'windows-95']]) {
       fireEvent.click(within(group).getByRole('button', { name: label }));
