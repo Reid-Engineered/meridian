@@ -1,0 +1,18 @@
+{
+    "checkedAt":  "2026-11-09T16:04:00.9975555-05:00",
+    "environment":  "Native Windows WebView2; rebuilt v0.1.3 smoke-test executable",
+    "data":  "Isolated copy under verification/dropdown-fix/data",
+    "checks":  [
+                   "Dark Format menu: All Formats and all six formats visible on dark surface",
+                   "Light Format menu: All Formats and all six formats visible on light surface",
+                   "Down then Enter selects Hardcover; chip appears and result count becomes 0 of 1"
+               ],
+    "screenshots":  [
+                        "dark-format-open.png",
+                        "dark-format-menu.png",
+                        "light-format-open.png",
+                        "light-format-menu.png",
+                        "keyboard-filter-applied.png"
+                    ],
+    "installedAppUpdated":  false
+}

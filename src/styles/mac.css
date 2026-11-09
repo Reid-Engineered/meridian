@@ -5,6 +5,7 @@
  * and the book inspector. Design reference: the "Meridian for Mac" canvas.
  */
 :root{
+  color-scheme:light;
   --font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable Text","Segoe UI","Helvetica Neue",sans-serif;
   --serif:"New York",ui-serif,"Iowan Old Style","Palatino Linotype",Georgia,serif;
   font-family:var(--font-ui);
@@ -247,6 +248,9 @@ h1,h2,h3{letter-spacing:-.01em}
   background:var(--glass);border:1px solid var(--glass-border);box-shadow:0 1px 1px rgba(0,0,0,.06);cursor:default}
 .popup select:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}
 .popup svg{position:absolute;right:9px;color:var(--muted);pointer-events:none}
+/* Native Windows menus can keep a white option surface while inheriting light
+ * text from a dark select. Give every option an opaque, matched theme pair. */
+select option,select optgroup{background-color:var(--surface);color:var(--text)}
 .seg-sm{height:28px;border-radius:14px}.seg-sm button{border-radius:11px;font-size:12px}
 .seg-fill{display:flex;width:100%}.seg-fill button{flex:1}
 .seg button[aria-pressed="true"]{background:var(--fill2);color:var(--text);font-weight:600}
