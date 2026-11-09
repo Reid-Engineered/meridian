@@ -90,10 +90,10 @@ h1,h2,h3{letter-spacing:-.01em}
 .traffic-space{height:30px;flex:none}
 .sidebar-brand{padding:2px 8px 14px;flex:none}
 .sidebar-brand img{display:block;width:158px;max-width:100%;height:auto}
-.sidebar-brand .sidebar-logo-dark{display:none}
-.sidebar-brand .sidebar-logo-retro{display:none}
-[data-theme="dark"] .sidebar-brand .sidebar-logo-light,[data-theme="mocha"] .sidebar-brand .sidebar-logo-light{display:none}
-[data-theme="dark"] .sidebar-brand .sidebar-logo-dark,[data-theme="mocha"] .sidebar-brand .sidebar-logo-dark{display:block}
+.brand-logo .sidebar-logo-dark{display:none}
+.brand-logo .sidebar-logo-retro{display:none}
+[data-theme="dark"] .brand-logo .sidebar-logo-light,[data-theme="mocha"] .brand-logo .sidebar-logo-light{display:none}
+[data-theme="dark"] .brand-logo .sidebar-logo-dark,[data-theme="mocha"] .brand-logo .sidebar-logo-dark{display:block}
 .setting-row:has(.theme-choice){flex-wrap:wrap}
 .theme-choice{flex-wrap:wrap;justify-content:flex-end;gap:2px;max-width:100%}
 .mac-sidebar nav{display:flex;flex-direction:column;gap:1px}
@@ -392,3 +392,5 @@ h1,h2,h3{letter-spacing:-.01em}
   .windows-shell .mac-sidebar,.windows-shell .mac-inspector{top:auto}
   .windows-shell .mac-toolbar{top:32px}
 }
+.main-brand{display:flex;justify-content:center;padding:18px 20px 0;flex:none}
+.main-brand img{display:block;width:190px;max-width:100%;height:auto}

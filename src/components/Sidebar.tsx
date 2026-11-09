@@ -16,7 +16,18 @@ type Props = {
   page: Page; scope: Scope; total: number; statusCounts: Partial<Record<ReadingStatus, number>>;
   collections: Collection[]; nowReading?: BookDetail;
   onNavigate: (page: Page, scope?: Scope) => void; onOpenBook: (book: BookDetail) => void;
+  /** False when the logo is shown centered above the main content instead. */
+  showLogo?: boolean;
 };
+
+/** The theme-aware Meridian logo; CSS shows the light, dark or retro artwork to suit the active theme. */
+export function BrandLogo({ className }: { className: string }) {
+  return <div className={`brand-logo ${className}`} data-tauri-drag-region>
+    <img className="sidebar-logo-light" src="/brand/meridian-logo.svg" alt="Meridian" width="158" height="43"/>
+    <img className="sidebar-logo-dark" src="/brand/meridian-logo-dark.svg" alt="Meridian" width="158" height="43"/>
+    <img className="sidebar-logo-retro" src="/brand/meridian-logo-retro.svg" alt="Meridian" width="184" height="40"/>
+  </div>;
+}
 
 function Row({ icon: Icon, label, count, active, muted, keep, onClick }: { icon: LucideIcon; label: string; count?: number; active: boolean; muted?: boolean; keep?: boolean; onClick: () => void }) {
   return <button className={`sb-row${active ? " active" : ""}${muted ? " muted-icon" : ""}${keep ? " sb-keep" : ""}`} aria-current={active ? "page" : undefined} onClick={onClick}>
@@ -24,16 +35,12 @@ function Row({ icon: Icon, label, count, active, muted, keep, onClick }: { icon:
   </button>;
 }
 
-export function Sidebar({ page, scope, total, statusCounts, collections, nowReading, onNavigate, onOpenBook }: Props) {
+export function Sidebar({ page, scope, total, statusCounts, collections, nowReading, onNavigate, onOpenBook, showLogo = true }: Props) {
   const inLibrary = page === "library";
   const progress = nowReading?.pageCount && nowReading.currentPage ? Math.round(nowReading.currentPage / nowReading.pageCount * 100) : 0;
   return <aside className="mac-sidebar" aria-label="Sidebar">
     <div className="traffic-space" aria-hidden="true" data-tauri-drag-region />
-    <div className="sidebar-brand">
-      <img className="sidebar-logo-light" src="/brand/meridian-logo.svg" alt="Meridian" width="158" height="43"/>
-      <img className="sidebar-logo-dark" src="/brand/meridian-logo-dark.svg" alt="Meridian" width="158" height="43"/>
-      <img className="sidebar-logo-retro" src="/brand/meridian-logo-retro.svg" alt="Meridian" width="184" height="40"/>
-    </div>
+    {showLogo && <BrandLogo className="sidebar-brand" />}
     <nav aria-label="Library">
       <Row icon={LibraryBig} label="All Books" count={total} active={inLibrary && scope.kind === "all"} onClick={() => onNavigate("library", { kind: "all" })} />
       <Row icon={BookOpen} label="Reading Now" count={statusCounts.Reading ?? 0} active={page === "reading"} onClick={() => onNavigate("reading")} />
