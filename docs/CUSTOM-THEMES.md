@@ -1,5 +1,16 @@
 # Custom appearance themes
 
+Native dropdown options use the active theme's opaque surface and text colors,
+including the Status, Format and Collection filters and book-editor dropdowns.
+The default Light palette explicitly requests a light native color scheme;
+Dark and Mocha request dark controls. Keep native keyboard selection and system
+selection highlighting when changing these styles. Windows WebView2 visual
+confirmation passed in an isolated native smoke build: the expanded Format menu
+shows all options on dark and light surfaces, and Down/Enter applies Hardcover
+with the corresponding filter chip and result count. Screenshots are saved in
+[`docs/evidence/dropdown-fix/`](evidence/dropdown-fix/) (dark/light open menus,
+keyboard selection, and the quick verification report).
+
 ## Meridian 95
 
 Settings > Appearance > Theme offers **Meridian 95**. The explicit `windows-95`

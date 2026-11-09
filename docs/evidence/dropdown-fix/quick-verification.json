@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-11-09T20:54:33.151Z",
+  "mode": "quick",
+  "toolchain": "stable-x86_64-pc-windows-gnu",
+  "results": [
+    {
+      "name": "Frontend tests",
+      "passed": true,
+      "exitCode": 0,
+      "seconds": 27.668
+    },
+    {
+      "name": "Frontend build",
+      "passed": true,
+      "exitCode": 0,
+      "seconds": 9.423
+    },
+    {
+      "name": "Rust storage and repository tests",
+      "passed": true,
+      "exitCode": 0,
+      "seconds": 51.818
+    },
+    {
+      "name": "Representative database fixtures",
+      "passed": true,
+      "exitCode": 0,
+      "seconds": 34.015
+    }
+  ]
+}
