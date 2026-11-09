@@ -9,6 +9,8 @@ branding are unchanged.
 
 Adopted October 9, 2026: an open-book M with a vertical meridian spine, in copper and parchment. Canonical wordmarks and transparent symbols are in `public/brand/`; the icon uses a charcoal rounded square. Wordmarks are vector outlines and need no installed fonts.
 
+Updated November 9, 2026: the light and dark wordmarks use regular Palatino Linotype; the book mark, colors and dimensions are unchanged. On Windows with Palatino installed, `scripts/update-wordmark.ps1` regenerates the lettering as vector outlines. Palatino Linotype is licensed with Windows; confirm the license before registering the logo as a trademark.
+
 The sidebar switches wordmarks with the resolved theme. The Windows caption keeps the existing native window operations, layout, drag region and accessibility behavior; its icon comes from `public/favicon.svg`.
 
 Desktop master and small-size sources are in `src-tauri/icons/source/`. Run `npm run icons` to regenerate PNG, ICO and ICNS assets, including the small-size entries. Keep the favicon and `public/brand/meridian-icon.svg` synchronized with the master source. Preserve SVG proportions and use the symbol when a wordmark would be narrower than 120px.
