@@ -266,3 +266,7 @@
   box-shadow: var(--bevel-raised);
 }
 [data-theme="windows-95"] ::selection { background: #000080; color: #fff; }
+
+[data-theme="windows-95"] .settings-tab { border-radius: 0; }
+[data-theme="windows-95"] .settings-tab[aria-selected="true"] { background: var(--accent); color: #fff; box-shadow: var(--bevel-recessed); }
+[data-theme="windows-95"] .sidebar-brand.symbol-only .sidebar-logo-retro { width: 36px; }

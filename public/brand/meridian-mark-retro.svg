@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 38" role="img" aria-labelledby="title desc" shape-rendering="crispEdges">
+  <title id="title">Meridian retro mark</title>
+  <desc id="desc">The pixel-grid open book from the Meridian 95 logo, without lettering.</desc>
+  <path fill="#808080" d="M2 12h12v2h8v-2h14v24H22v2h-8v-2H2z"/>
+  <path fill="#000080" d="M0 10h14v2h8v-2h14v24H22v2h-8v-2H0z"/>
+  <path fill="#008080" d="M2 12h12v2h8v-2h12v20H22v2h-8v-2H2z"/>
+  <path fill="#000080" d="M4 4h8v2h4v2h4V6h4V4h8v24h-8v2h-4v2h-4v-2h-4v-2H4z"/>
+  <path fill="#ffffc0" d="M6 6h6v2h4v2h2v20h-2v-2h-4v-2H6z"/>
+  <path fill="#fff" d="M20 10h4V8h6V6h-6v2h-4zM20 12h2v-2h4V8h4v18h-6v2h-4z"/>
+  <path fill="#808080" d="M8 12h4v2H8zM8 18h6v2H8zM8 24h6v2H8zM24 14h4v2h-4zM22 20h6v2h-6z"/>
+  <path fill="#fff" d="M18 0h2v6h-2z"/>
+  <path fill="#000080" d="M16 0h2v10h-2z"/>
+</svg>
