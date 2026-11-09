@@ -393,3 +393,4 @@ h1,h2,h3{letter-spacing:-.01em}
   .windows-shell .mac-toolbar{top:32px}
 }
 .sidebar-brand.centered img{margin-inline:auto}
+.sidebar-brand.symbol-only img{width:48px}

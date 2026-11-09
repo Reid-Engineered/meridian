@@ -7,7 +7,7 @@ import App from '../App';
 
 beforeEach(()=>{vi.spyOn(libraryService,'getCoverStorage').mockResolvedValue({files:0,bytes:0});});
 afterEach(()=>{cleanup();vi.restoreAllMocks();localStorage.clear();});
-const page=(props:Partial<Parameters<typeof SettingsPage>[0]>={})=>render(<SettingsPage theme="light" onTheme={()=>{}} logoPosition="left" onLogoPosition={()=>{}} info={null} onExport={vi.fn()} onReset={()=>{}} onRestored={vi.fn()} {...props}/>);
+const page=(props:Partial<Parameters<typeof SettingsPage>[0]>={})=>render(<SettingsPage theme="light" onTheme={()=>{}} logoPosition="left" onLogoPosition={()=>{}} logoStyle="full" onLogoStyle={()=>{}} info={null} onExport={vi.fn()} onReset={()=>{}} onRestored={vi.fn()} {...props}/>);
 
 it('shows one section at a time and switches with tabs and arrow keys',()=>{
   page();
@@ -48,4 +48,21 @@ it('centers the logo in the sidebar and remembers it',async()=>{
   render(<App/>);
   await screen.findByRole('button',{name:'Open Dune'});
   expect(brand().classList.contains('centered')).toBe(true);
+});
+
+it('shows only the symbol when the name is turned off, and remembers it',async()=>{
+  localStorage.clear();
+  const app=render(<App/>);
+  await screen.findByRole('button',{name:'Open Dune'});
+  const sources=()=>[...screen.getByRole('complementary',{name:'Sidebar'}).querySelectorAll('.sidebar-brand img')].map(i=>i.getAttribute('src'));
+  expect(sources()).toContain('/brand/meridian-logo.svg');
+  fireEvent.click(within(screen.getByRole('complementary',{name:'Sidebar'})).getByRole('button',{name:/Settings/}));
+  const group=screen.getByRole('group',{name:'Logo style'});
+  expect(within(group).getByRole('button',{name:/Symbol and name/}).getAttribute('aria-pressed')).toBe('true');
+  fireEvent.click(within(group).getByRole('button',{name:/Symbol only/}));
+  expect(sources()).toEqual(['/brand/meridian-mark.svg','/brand/meridian-mark-light.svg','/brand/meridian-mark-retro.svg']);
+  app.unmount();
+  render(<App/>);
+  await screen.findByRole('button',{name:'Open Dune'});
+  expect(sources()).toEqual(['/brand/meridian-mark.svg','/brand/meridian-mark-light.svg','/brand/meridian-mark-retro.svg']);
 });

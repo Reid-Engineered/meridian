@@ -1,10 +1,10 @@
-import { Check, Coffee, Database, Download, FolderOpen, Heart, Info, Monitor, Moon, AlignCenter, AlignLeft, RotateCcw, Sparkles, Sun, Upload } from "lucide-react";
+import { Check, Coffee, Database, Download, FolderOpen, Heart, Info, Monitor, Moon, AlignCenter, AlignLeft, BookOpen, Type, RotateCcw, Sparkles, Sun, Upload } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { libraryService } from "../services/library";
 import type { AppInfo, BackupFileSelection, CoverStorage } from "../types";
 import { THEME_IDS, type ThemePreference } from "../theme";
-import type { LogoPosition } from "../logo";
+import type { LogoPosition, LogoStyle } from "../logo";
 
 const themeLabels: Record<ThemePreference, { label: string; icon: typeof Sun }> = {
   light: { label: "Light", icon: Sun },
@@ -20,6 +20,10 @@ const logoPositions: { value: LogoPosition; label: string; icon: typeof Sun }[] 
   { value: "left", label: "Left", icon: AlignLeft },
   { value: "centered", label: "Centered", icon: AlignCenter },
 ];
+const logoStyles: { value: LogoStyle; label: string; icon: typeof Sun }[] = [
+  { value: "full", label: "Symbol and name", icon: Type },
+  { value: "symbol", label: "Symbol only", icon: BookOpen },
+];
 
 type Tab = "appearance" | "library" | "backup" | "about";
 const tabs: { id: Tab; label: string; icon: typeof Sun }[] = [
@@ -29,7 +33,7 @@ const tabs: { id: Tab; label: string; icon: typeof Sun }[] = [
   { id: "about", label: "About", icon: Info },
 ];
 
-export function SettingsPage({theme,onTheme,logoPosition,onLogoPosition,info,onExport,onReset,onRestored}:{theme:ThemePreference;onTheme:(t:ThemePreference)=>void;logoPosition:LogoPosition;onLogoPosition:(p:LogoPosition)=>void;info:AppInfo|null;onExport:()=>Promise<void>;onReset:()=>void;onRestored:()=>Promise<void>}){
+export function SettingsPage({theme,onTheme,logoPosition,onLogoPosition,logoStyle,onLogoStyle,info,onExport,onReset,onRestored}:{theme:ThemePreference;onTheme:(t:ThemePreference)=>void;logoPosition:LogoPosition;onLogoPosition:(p:LogoPosition)=>void;logoStyle:LogoStyle;onLogoStyle:(s:LogoStyle)=>void;info:AppInfo|null;onExport:()=>Promise<void>;onReset:()=>void;onRestored:()=>Promise<void>}){
   const native='__TAURI_INTERNALS__' in window;
   const [tab,setTab]=useState<Tab>('appearance');
   const tabRefs=useRef<Partial<Record<Tab,HTMLButtonElement|null>>>({});
@@ -68,7 +72,7 @@ export function SettingsPage({theme,onTheme,logoPosition,onLogoPosition,info,onE
     <div className="settings-tabs" role="tablist" aria-orientation="vertical" aria-label="Settings sections" onKeyDown={onTabKey}>{tabs.map(({id,label,icon:Icon})=><button key={id} ref={el=>{tabRefs.current[id]=el}} role="tab" id={`settings-tab-${id}`} aria-controls="settings-panel" aria-selected={tab===id} tabIndex={tab===id?0:-1} className="settings-tab" onClick={()=>setTab(id)}><Icon size={16} aria-hidden="true"/>{label}</button>)}</div>
     <section className="settings-column" role="tabpanel" id="settings-panel" aria-labelledby={`settings-tab-${tab}`}>
     {tab==='appearance'&&<>
-    <article className="settings-card"><header><span><Sun size={18}/></span><div><h3>Appearance</h3><p>Choose how Meridian looks on this device.</p></div></header><div className="setting-row"><div><strong>Theme</strong><small>Choose a named theme, or use Automatic to match your system.</small></div><div className="theme-choice" role="group" aria-label="Theme">{themes.map(({value,label,icon:Icon})=><button key={value} className={theme===value?"active":""} aria-pressed={theme===value} onClick={()=>onTheme(value)}><Icon size={16}/>{label}{theme===value&&<Check size={14}/>}</button>)}</div></div><div className="setting-row"><div><strong>Logo position</strong><small>Align the logo at the top of the sidebar to the left or center it.</small></div><div className="theme-choice" role="group" aria-label="Logo position">{logoPositions.map(({value,label,icon:Icon})=><button key={value} className={logoPosition===value?"active":""} aria-pressed={logoPosition===value} onClick={()=>onLogoPosition(value)}><Icon size={16}/>{label}{logoPosition===value&&<Check size={14}/>}</button>)}</div></div></article>
+    <article className="settings-card"><header><span><Sun size={18}/></span><div><h3>Appearance</h3><p>Choose how Meridian looks on this device.</p></div></header><div className="setting-row"><div><strong>Theme</strong><small>Choose a named theme, or use Automatic to match your system.</small></div><div className="theme-choice" role="group" aria-label="Theme">{themes.map(({value,label,icon:Icon})=><button key={value} className={theme===value?"active":""} aria-pressed={theme===value} onClick={()=>onTheme(value)}><Icon size={16}/>{label}{theme===value&&<Check size={14}/>}</button>)}</div></div><div className="setting-row"><div><strong>Logo position</strong><small>Align the logo at the top of the sidebar to the left or center it.</small></div><div className="theme-choice" role="group" aria-label="Logo position">{logoPositions.map(({value,label,icon:Icon})=><button key={value} className={logoPosition===value?"active":""} aria-pressed={logoPosition===value} onClick={()=>onLogoPosition(value)}><Icon size={16}/>{label}{logoPosition===value&&<Check size={14}/>}</button>)}</div></div><div className="setting-row"><div><strong>Logo style</strong><small>Show the “Meridian” name beside the symbol, or the symbol on its own.</small></div><div className="theme-choice" role="group" aria-label="Logo style">{logoStyles.map(({value,label,icon:Icon})=><button key={value} className={logoStyle===value?"active":""} aria-pressed={logoStyle===value} onClick={()=>onLogoStyle(value)}><Icon size={16}/>{label}{logoStyle===value&&<Check size={14}/>}</button>)}</div></div></article>
     </>}
     {tab==='library'&&<>
     <article className="settings-card"><header><span><Database size={18}/></span><div><h3>Library data</h3><p>Your catalog stays on this computer.</p></div></header><div className="path-card"><FolderOpen size={17}/><div><small>Database</small><code>{info?.databasePath||"Loading…"}</code></div></div><div className="path-card"><FolderOpen size={17}/><div><small>Cover storage</small><code>{info?.coversPath||"Loading…"}</code></div></div></article>

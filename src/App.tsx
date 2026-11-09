@@ -13,7 +13,7 @@ import { StatisticsPage } from "./pages/StatisticsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { coverReadiness, libraryService } from "./services/library";
 import { useTheme } from "./theme";
-import { useLogoPosition } from "./logo";
+import { useLogoPreferences } from "./logo";
 import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, ReadingStatus, Statistics } from "./types";
 
 const pageTitles: Record<Exclude<Page, "library">, { title: string; subtitle: string }> = {
@@ -27,7 +27,7 @@ const plural = (n: number) => `${n} ${n === 1 ? "book" : "books"}`;
 export default function App(){
   const [page,setPage]=useState<Page>("library"),[books,setBooks]=useState<BookDetail[]>([]),[allBooks,setAllBooks]=useState<BookDetail[]>([]),[collections,setCollections]=useState<Collection[]>([]),[stats,setStats]=useState<Statistics|null>(null),[info,setInfo]=useState<AppInfo|null>(null);
   const [query,setQuery]=useState<BookQuery>({sort:"date_added_desc"}),[selected,setSelected]=useState<BookDetail|null>(null),[editing,setEditing]=useState<BookDetail|undefined>(),[formOpen,setFormOpen]=useState(false),[confirmDelete,setConfirmDelete]=useState<BookDetail|null>(null),[loading,setLoading]=useState(true),[view,setView]=useState<"grid"|"list">(()=>localStorage.getItem("meridian-view")==="list"?"list":"grid"),[toast,setToast]=useState("");
-  const theme=useTheme(),logo=useLogoPosition();
+  const theme=useTheme(),logo=useLogoPreferences();
   const refresh=useCallback(async()=>{setLoading(true);try{const [filtered,all,c,s,i]=await Promise.all([libraryService.listBooks(query),libraryService.listBooks({sort:"date_added_desc"}),libraryService.listCollections(),libraryService.getStatistics(),libraryService.getAppInfo()]);setBooks(filtered);setAllBooks(all);setCollections(c);setStats(s);setInfo(i)}finally{setLoading(false)}},[query]);
   useEffect(()=>{refresh()},[refresh]);
   useEffect(()=>{
@@ -56,9 +56,9 @@ export default function App(){
   const libraryTitle=scope.kind==="collection"?collections.find(c=>c.id===scope.id)?.name??"Collection":scope.kind==="status"?scope.status:"All Books";
   const head=page==="library"?{title:libraryTitle,subtitle:loading?"":query.search?`${plural(books.length)} matching “${query.search}”`:plural(books.length)}:pageTitles[page];
 
-  const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} logoPosition={logo.position} onLogoPosition={logo.setPosition} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
+  const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} logoPosition={logo.position} onLogoPosition={logo.setPosition} logoStyle={logo.style} onLogoStyle={logo.setStyle} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
   return <><WindowChrome /><div className={`mac-shell${selected?" has-inspector":""}${windowService.hasCustomChrome()?" windows-shell":""}`}>
-    <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected} logoCentered={logo.position==="centered"}/>
+    <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected} logoCentered={logo.position==="centered"} logoSymbolOnly={logo.style==="symbol"}/>
     <main className="mac-content">
       <Toolbar title={head.title} subtitle={head.subtitle} onAdd={openAdd}>
         {page==="library"&&allBooks.length>0&&<LibraryToolbarActions query={query} onQuery={setQuery} view={view} onView={v=>{setView(v);try{localStorage.setItem("meridian-view",v)}catch{/* view stays in memory */}}}

@@ -18,6 +18,8 @@ type Props = {
   onNavigate: (page: Page, scope?: Scope) => void; onOpenBook: (book: BookDetail) => void;
   /** Center the logo in the sidebar instead of aligning it left. */
   logoCentered?: boolean;
+  /** Show only the symbol, without the "Meridian" name. */
+  logoSymbolOnly?: boolean;
 };
 
 function Row({ icon: Icon, label, count, active, muted, keep, onClick }: { icon: LucideIcon; label: string; count?: number; active: boolean; muted?: boolean; keep?: boolean; onClick: () => void }) {
@@ -26,15 +28,21 @@ function Row({ icon: Icon, label, count, active, muted, keep, onClick }: { icon:
   </button>;
 }
 
-export function Sidebar({ page, scope, total, statusCounts, collections, nowReading, onNavigate, onOpenBook, logoCentered = false }: Props) {
+export function Sidebar({ page, scope, total, statusCounts, collections, nowReading, onNavigate, onOpenBook, logoCentered = false, logoSymbolOnly = false }: Props) {
   const inLibrary = page === "library";
   const progress = nowReading?.pageCount && nowReading.currentPage ? Math.round(nowReading.currentPage / nowReading.pageCount * 100) : 0;
   return <aside className="mac-sidebar" aria-label="Sidebar">
     <div className="traffic-space" aria-hidden="true" data-tauri-drag-region />
-    <div className={`sidebar-brand${logoCentered ? " centered" : ""}`}>
-      <img className="sidebar-logo-light" src="/brand/meridian-logo.svg" alt="Meridian" width="158" height="43"/>
-      <img className="sidebar-logo-dark" src="/brand/meridian-logo-dark.svg" alt="Meridian" width="158" height="43"/>
-      <img className="sidebar-logo-retro" src="/brand/meridian-logo-retro.svg" alt="Meridian" width="184" height="40"/>
+    <div className={`sidebar-brand${logoCentered ? " centered" : ""}${logoSymbolOnly ? " symbol-only" : ""}`}>
+      {logoSymbolOnly ? <>
+        <img className="sidebar-logo-light" src="/brand/meridian-mark.svg" alt="Meridian" width="48" height="48"/>
+        <img className="sidebar-logo-dark" src="/brand/meridian-mark-light.svg" alt="Meridian" width="48" height="48"/>
+        <img className="sidebar-logo-retro" src="/brand/meridian-mark-retro.svg" alt="Meridian" width="36" height="38"/>
+      </> : <>
+        <img className="sidebar-logo-light" src="/brand/meridian-logo.svg" alt="Meridian" width="158" height="43"/>
+        <img className="sidebar-logo-dark" src="/brand/meridian-logo-dark.svg" alt="Meridian" width="158" height="43"/>
+        <img className="sidebar-logo-retro" src="/brand/meridian-logo-retro.svg" alt="Meridian" width="184" height="40"/>
+      </>}
     </div>
     <nav aria-label="Library">
       <Row icon={LibraryBig} label="All Books" count={total} active={inLibrary && scope.kind === "all"} onClick={() => onNavigate("library", { kind: "all" })} />
