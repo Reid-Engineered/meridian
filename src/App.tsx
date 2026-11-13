@@ -9,6 +9,7 @@ import { windowService } from "./services/window";
 import { LibraryPage, LibraryToolbarActions } from "./pages/LibraryPage";
 import { CollectionsPage } from "./pages/CollectionsPage";
 import { ReadingPage } from "./pages/ReadingPage";
+import { WheelPage } from "./pages/WheelPage";
 import { StatisticsPage } from "./pages/StatisticsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { coverReadiness, libraryService } from "./services/library";
@@ -18,11 +19,21 @@ import type { AppInfo, BookDetail, BookInput, BookQuery, Collection, ReadingStat
 
 const pageTitles: Record<Exclude<Page, "library">, { title: string; subtitle: string }> = {
   collections: { title: "Collections", subtitle: "Curated shelves" }, reading: { title: "Reading Now", subtitle: "Pick up where you left off" },
+  wheel: { title: "Book Wheel", subtitle: "Spin to choose your next read" },
   statistics: { title: "Statistics", subtitle: "Your reading life, by the numbers" }, settings: { title: "Settings", subtitle: "Preferences & data" },
 };
 const scopeOf = (q: BookQuery): Scope => q.collectionId ? { kind: "collection", id: q.collectionId }
   : q.status && q.status !== "All" ? { kind: "status", status: q.status as ReadingStatus } : { kind: "all" };
 const plural = (n: number) => `${n} ${n === 1 ? "book" : "books"}`;
+const toBookInput = (book: BookDetail): BookInput => ({
+  title: book.title, subtitle: book.subtitle ?? "", authors: book.authors, description: book.description ?? "",
+  publicationYear: book.publicationYear ?? undefined, series: book.series ?? "", seriesPosition: book.seriesPosition ?? undefined,
+  isbn10: book.isbn10 ?? "", isbn13: book.isbn13 ?? "", publisher: book.publisher ?? "", pageCount: book.pageCount ?? undefined,
+  language: book.language ?? "", format: book.format, status: book.status, currentPage: book.currentPage ?? undefined,
+  rating: book.rating ?? undefined, coverUrl: book.coverUrl ?? "", tags: book.tags, collectionIds: book.collectionIds,
+  location: book.location ?? "", condition: book.condition ?? "", notes: book.notes ?? "", review: book.review ?? "",
+  dateAcquired: book.dateAcquired ?? "", dateStarted: book.dateStarted ?? "", dateFinished: book.dateFinished ?? "",
+});
 
 export default function App(){
   const [page,setPage]=useState<Page>("library"),[books,setBooks]=useState<BookDetail[]>([]),[allBooks,setAllBooks]=useState<BookDetail[]>([]),[collections,setCollections]=useState<Collection[]>([]),[stats,setStats]=useState<Statistics|null>(null),[info,setInfo]=useState<AppInfo|null>(null);
@@ -42,6 +53,7 @@ export default function App(){
   useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.defaultPrevented||document.querySelector('[aria-modal="true"]'))return;if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="n"){e.preventDefault();setEditing(undefined);setFormOpen(true)}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();setPage("library");setTimeout(()=>document.querySelector<HTMLInputElement>(".global-search input")?.focus(),0)}};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler)},[]);
   const notify=(message:string)=>{setToast(message);setTimeout(()=>setToast(""),2600)};
   const saveBook=async(input:BookInput,source?:number)=>{const saved=editing?await libraryService.updateBook(editing.id,input):source!==undefined?await libraryService.createBookCopy(source,input):await libraryService.createBook(input);setFormOpen(false);setEditing(undefined);setSelected(saved);notify(editing?"Changes saved":"Book added to your library");await refresh()};
+  const startReading=async(book:BookDetail)=>{const updated=await libraryService.updateBook(book.id,{...toBookInput(book),status:"Reading",dateStarted:book.dateStarted||new Date().toISOString().slice(0,10)});if(selected?.id===updated.id)setSelected(updated);notify(`Started reading \u201c${updated.title}\u201d`);await refresh()};
   const deleteBook=async()=>{if(!confirmDelete)return;await libraryService.deleteBook(confirmDelete.id);setSelected(null);setConfirmDelete(null);notify("Book removed");await refresh()};
   const exportLibrary=async()=>{const data=await libraryService.exportLibrary();const blob=new Blob([data],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`meridian-catalog-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);notify("Catalog exported")};
   const openAdd=()=>{setEditing(undefined);setFormOpen(true)};
@@ -54,9 +66,9 @@ export default function App(){
     if(next==="library"&&nextScope)setQuery(q=>{const status=nextScope.kind==="status"?nextScope.status:undefined,collectionId=nextScope.kind==="collection"?nextScope.id:undefined;return q.status===status&&q.collectionId===collectionId?q:{...q,status,collectionId}});
   };
   const libraryTitle=scope.kind==="collection"?collections.find(c=>c.id===scope.id)?.name??"Collection":scope.kind==="status"?scope.status:"All Books";
-  const head=page==="library"?{title:libraryTitle,subtitle:loading?"":query.search?`${plural(books.length)} matching “${query.search}”`:plural(books.length)}:pageTitles[page];
+  const head=page==="library"?{title:libraryTitle,subtitle:loading?"":query.search?`${plural(books.length)} matching \u201c${query.search}\u201d`:plural(books.length)}:pageTitles[page];
 
-  const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} logoPosition={logo.position} onLogoPosition={logo.setPosition} logoStyle={logo.style} onLogoStyle={logo.setStyle} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
+  const content=page==="library"?<LibraryPage books={books} allBooks={allBooks} query={query} onQuery={setQuery} onOpen={setSelected} view={view} loading={loading} selectedId={selected?.id} collections={collections} onAdd={openAdd}/>:page==="collections"?<CollectionsPage collections={collections} books={allBooks} onCreate={async(n,d)=>{await libraryService.createCollection(n,d);notify("Collection created");await refresh()}} onRename={async(id,n,d)=>{await libraryService.renameCollection(id,n,d);notify("Collection renamed");await refresh()}} onDelete={async id=>{await libraryService.deleteCollection(id);notify("Collection deleted");await refresh()}} onOpenBook={setSelected}/>:page==="reading"?<ReadingPage books={allBooks} onOpen={setSelected}/>:page==="wheel"?<WheelPage books={allBooks} collections={collections} onOpenBook={setSelected} onStartReading={startReading}/>:page==="statistics"?<StatisticsPage stats={stats}/>:<SettingsPage theme={theme.preference} onTheme={theme.setPreference} logoPosition={logo.position} onLogoPosition={logo.setPosition} logoStyle={logo.style} onLogoStyle={logo.setStyle} info={info} onExport={exportLibrary} onRestored={async()=>{setSelected(null);setEditing(undefined);setFormOpen(false);await refresh()}} onReset={()=>{libraryService.resetDemo();refresh();notify("Preview library restored")}}/>;
   return <><WindowChrome /><div className={`mac-shell${selected?" has-inspector":""}${windowService.hasCustomChrome()?" windows-shell":""}`}>
     <Sidebar page={page} scope={scope} total={allBooks.length} statusCounts={statusCounts} collections={collections} nowReading={nowReading} onNavigate={navigate} onOpenBook={setSelected} logoCentered={logo.position==="centered"} logoSymbolOnly={logo.style==="symbol"}/>
     <main className="mac-content">

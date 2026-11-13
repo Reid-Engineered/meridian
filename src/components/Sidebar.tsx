@@ -1,8 +1,8 @@
-import { BarChart3, BookOpen, Bookmark, CircleCheck, CirclePause, Folder, LayoutGrid, LibraryBig, Settings, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, Bookmark, CircleCheck, CirclePause, Folder, LayoutGrid, LibraryBig, PieChart, Settings, type LucideIcon } from "lucide-react";
 import type { BookDetail, Collection, ReadingStatus } from "../types";
 import { CoverImage } from "./CoverImage";
 
-export type Page = "library"|"collections"|"reading"|"statistics"|"settings";
+export type Page = "library"|"collections"|"reading"|"wheel"|"statistics"|"settings";
 /** What the Library page is showing. Status and collection scopes map onto the existing BookQuery filters. */
 export type Scope = { kind: "all" } | { kind: "status"; status: ReadingStatus } | { kind: "collection"; id: number };
 
@@ -49,6 +49,7 @@ export function Sidebar({ page, scope, total, statusCounts, collections, nowRead
       <Row icon={BookOpen} label="Reading Now" count={statusCounts.Reading ?? 0} active={page === "reading"} onClick={() => onNavigate("reading")} />
       {statusRows.map(r => <Row key={r.status} icon={r.icon} label={r.label} count={statusCounts[r.status] ?? 0}
         active={inLibrary && scope.kind === "status" && scope.status === r.status} onClick={() => onNavigate("library", { kind: "status", status: r.status })} />)}
+      <Row icon={PieChart} label="Book Wheel" active={page === "wheel"} onClick={() => onNavigate("wheel")} />
       <Row icon={BarChart3} label="Statistics" active={page === "statistics"} onClick={() => onNavigate("statistics")} />
     </nav>
     <nav aria-label="Collections" className="sb-section">
