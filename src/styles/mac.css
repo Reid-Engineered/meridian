@@ -457,6 +457,7 @@ select option,select optgroup{background-color:var(--surface);color:var(--text)}
 .wheel-result-authors{margin:4px 0 0;font-size:13px;color:var(--accent-text);font-weight:500}
 .wheel-result-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px;font-size:12px;color:var(--muted)}
 .wheel-result-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.wheel-result-error{margin:12px 0 0}
 
 .wheel-pool-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--border-soft)}
 .wheel-pool-head h3{margin:0;font:600 15px/1.2 var(--font-ui)}

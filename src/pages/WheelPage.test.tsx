@@ -174,6 +174,77 @@ describe("WheelPage", () => {
     const nextTitle = within(nextResult).getByRole("heading", { level: 3 }).textContent!;
     expect(nextTitle).not.toBe(winnerTitle);
   });
+
+  it("clears the winner whenever a non-winning book is toggled or Select All changes the pool", () => {
+    // Force selection of the middle book (index 1 -> Frankenstein) at 180deg local angle
+    const getRandomValues = vi.spyOn(crypto, "getRandomValues").mockImplementation(<T extends ArrayBufferView | null>(arr: T): T => {
+      const view = arr as unknown as Uint32Array;
+      // 1st call: randomInt(3) -> 1 (1 % 3 === 1); 2nd call: randomFraction() -> 0.5
+      if (view) view[0] = getRandomValues.mock.calls.length % 2 === 1 ? 1 : 0x80000000;
+      return arr;
+    });
+
+    render(
+      <WheelPage
+        books={demoBooks}
+        collections={demoCollections}
+        onOpenBook={vi.fn()}
+        spinDurationMs={0}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Spin the wheel" }));
+    const result = screen.getByRole("region", { name: "Selected book" });
+    expect(within(result).getByRole("heading", { level: 3 }).textContent).toBe("Frankenstein");
+    expect(document.querySelector(".wheel-slice.is-winner")).toBeTruthy();
+
+    // Toggling a different book (Neuromancer) must invalidate the previous winner so pointer and card never disagree
+    const pool = screen.getByRole("region", { name: "Books on wheel" });
+    fireEvent.click(within(pool).getByRole("button", { name: /Neuromancer/ }));
+    expect(screen.getByText("2 of 3 included")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Selected book" })).toBeNull();
+    expect(document.querySelector(".wheel-slice.is-winner")).toBeNull();
+
+    // Re-spin with 2 books, then restore all via "All": the restored 3rd book shifts slice angles so winner must clear
+    fireEvent.click(screen.getByRole("button", { name: "Spin the wheel" }));
+    expect(screen.getByRole("region", { name: "Selected book" })).toBeTruthy();
+    fireEvent.click(within(pool).getByRole("button", { name: "All" }));
+    expect(screen.getByText("3 of 3 included")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Selected book" })).toBeNull();
+  });
+
+  it("surfaces Start Reading failures, preserves selection, and allows retrying", async () => {
+    const onStartReading = vi.fn()
+      .mockRejectedValueOnce(new Error("Database is locked"))
+      .mockResolvedValueOnce(undefined);
+
+    render(
+      <WheelPage
+        books={demoBooks}
+        collections={demoCollections}
+        onOpenBook={vi.fn()}
+        onStartReading={onStartReading}
+        spinDurationMs={0}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Spin the wheel" }));
+    const result = screen.getByRole("region", { name: "Selected book" });
+    const chosenTitle = within(result).getByRole("heading", { level: 3 }).textContent!;
+
+    const startBtn = within(result).getByRole("button", { name: "Start Reading" }) as HTMLButtonElement;
+    fireEvent.click(startBtn);
+
+    const alert = await within(result).findByRole("alert");
+    expect(alert.textContent).toContain("Database is locked");
+    expect(within(result).getByRole("heading", { level: 3 }).textContent).toBe(chosenTitle);
+    expect(startBtn.disabled).toBe(false);
+
+    // Retry succeeds and clears the error
+    fireEvent.click(startBtn);
+    await waitFor(() => expect(within(result).queryByRole("alert")).toBeNull());
+    expect(onStartReading).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("Book Wheel in App", () => {

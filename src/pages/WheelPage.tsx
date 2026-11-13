@@ -66,7 +66,9 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
   const [spinning, setSpinning] = useState(false);
   const [winnerId, setWinnerId] = useState<number | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [startError, setStartError] = useState("");
   const spinTimer = useRef<number | null>(null);
+  const landedPoolKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -110,6 +112,17 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
     [filteredBooks, excludedIds]
   );
 
+  const activeIdsKey = useMemo(() => activeBooks.map(b => b.id).join(","), [activeBooks]);
+
+  // Ensure the landed winner and pointer never fall out of sync if the pool changes externally.
+  useEffect(() => {
+    if (winnerId !== null && !spinning && landedPoolKeyRef.current !== activeIdsKey) {
+      landedPoolKeyRef.current = null;
+      setWinnerId(null);
+      setStartError("");
+    }
+  }, [activeIdsKey, winnerId, spinning]);
+
   const slices = useMemo(
     () => activeBooks.map(b => ({ id: b.id, label: b.title, sublabel: b.authors.join(", ") })),
     [activeBooks]
@@ -130,24 +143,35 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
     [activeBooks]
   );
 
+  const clearWinner = () => {
+    landedPoolKeyRef.current = null;
+    setWinnerId(null);
+    setStartError("");
+  };
+
   const spinWithCandidates = (candidates: BookDetail[]) => {
     if (spinning || candidates.length === 0) return;
     const chosenIdx = randomInt(candidates.length);
     const chosen = candidates[chosenIdx];
+    const poolKey = candidates.map(b => b.id).join(",");
     const nextRotation = computeNextSpinRotation(rotation, chosenIdx, candidates.length, 6, randomFraction());
     const duration = prefersReducedMotion() ? 0 : spinDurationMs;
 
     setRotation(nextRotation);
+    setStartError("");
     if (duration <= 0) {
+      landedPoolKeyRef.current = poolKey;
       setSpinning(false);
       setWinnerId(chosen.id);
       return;
     }
 
+    landedPoolKeyRef.current = null;
     setSpinning(true);
     setWinnerId(null);
     spinTimer.current = window.setTimeout(() => {
       spinTimer.current = null;
+      landedPoolKeyRef.current = poolKey;
       setSpinning(false);
       setWinnerId(chosen.id);
     }, duration);
@@ -164,15 +188,13 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
     if (remaining.length > 0) {
       spinWithCandidates(remaining);
     } else {
-      setWinnerId(null);
+      clearWinner();
     }
   };
 
   const toggleBook = (id: number) => {
     if (spinning) return;
-    if (id === winnerId && !excludedIds.has(id)) {
-      setWinnerId(null);
-    }
+    clearWinner();
     setExcludedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -183,6 +205,7 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
 
   const selectAll = () => {
     if (spinning) return;
+    clearWinner();
     setExcludedIds(prev => {
       const next = new Set(prev);
       filteredBooks.forEach(b => next.delete(b.id));
@@ -192,12 +215,12 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
 
   const clearAll = () => {
     if (spinning) return;
+    clearWinner();
     setExcludedIds(prev => {
       const next = new Set(prev);
       filteredBooks.forEach(b => next.add(b.id));
       return next;
     });
-    setWinnerId(null);
   };
 
   const sampleTwelve = () => {
@@ -208,6 +231,7 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
     const chosen = new Set(pool.slice(0, 12).map(b => b.id));
+    clearWinner();
     setExcludedIds(prev => {
       const next = new Set(prev);
       filteredBooks.forEach(b => {
@@ -216,12 +240,11 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
       });
       return next;
     });
-    setWinnerId(null);
   };
 
   const shuffleSlices = () => {
     if (spinning) return;
-    setWinnerId(null);
+    clearWinner();
     setOrderIds(prev => {
       const copy = [...prev];
       for (let i = copy.length - 1; i > 0; i--) {
@@ -235,20 +258,28 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
   const changeStatus = (next: WheelStatusFilter) => {
     cancelSpin();
     setStatusFilter(next);
-    setWinnerId(null);
+    clearWinner();
   };
 
   const changeCollection = (nextId?: number) => {
     cancelSpin();
     setCollectionId(nextId);
-    setWinnerId(null);
+    clearWinner();
   };
 
   const handleStartReading = async () => {
     if (!winner || !onStartReading || updatingStatus) return;
     setUpdatingStatus(true);
+    setStartError("");
     try {
       await onStartReading(winner);
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : typeof e === "string" ? e : "";
+      setStartError(
+        detail
+          ? `Could not mark as Reading: ${detail}`
+          : "Could not mark this book as Reading. Please try again."
+      );
     } finally {
       setUpdatingStatus(false);
     }
@@ -414,6 +445,12 @@ export function WheelPage({ books, collections, onOpenBook, onStartReading, spin
                   {activeBooks.length > 1 ? "Exclude & Spin" : "Exclude"}
                 </button>
               </div>
+              {startError && (
+                <p className="form-error wheel-result-error" role="alert">
+                  <BookOpen size={15} aria-hidden="true" />
+                  <span>{startError}</span>
+                </p>
+              )}
             </section>
           )}
 
