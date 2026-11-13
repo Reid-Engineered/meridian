@@ -270,3 +270,23 @@
 [data-theme="windows-95"] .settings-tab { border-radius: 0; }
 [data-theme="windows-95"] .settings-tab[aria-selected="true"] { background: var(--accent); color: #fff; box-shadow: var(--bevel-recessed); }
 [data-theme="windows-95"] .sidebar-brand.symbol-only .sidebar-logo-retro { width: 36px; }
+[data-theme="windows-95"] :is(.wheel-stage, .wheel-result-card, .wheel-pool-card) {
+  border: 0;
+  border-radius: 4px;
+  background: var(--bg);
+  box-shadow: var(--bevel-raised);
+}
+[data-theme="windows-95"] .wheel-pool-head { border-bottom-color: var(--border); }
+[data-theme="windows-95"] .wheel-pool-item { border-radius: 3px; }
+[data-theme="windows-95"] .wheel-pool-item.is-included { background: var(--surface); box-shadow: var(--bevel-recessed); }
+[data-theme="windows-95"] .wheel-swatch { border-radius: 2px; border-color: #000; }
+[data-theme="windows-95"] .wheel-hub {
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid #000;
+  box-shadow: var(--bevel-raised);
+}
+[data-theme="windows-95"] .wheel-hub:hover:not(:disabled) { background: #dfdfdf; }
+[data-theme="windows-95"] .wheel-hub:active:not(:disabled) { box-shadow: var(--bevel-recessed); }
+[data-theme="windows-95"] .wheel-collection-select .popup select { border-radius: 3px; }
+
